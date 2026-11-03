@@ -2,6 +2,7 @@
   --bg: #ffffff;
   --text: #0e0f12;
   --accent: #d4ff3f;
+  --error: #c4262e;
 
   font-family:
     Inter,
@@ -20,6 +21,7 @@
   :root {
     --bg: #0e0f12;
     --text: #f4f4f5;
+    --error: #ff7a7a;
   }
 }
 

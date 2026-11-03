@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "generate:demo": "node scripts/generate-demo.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
