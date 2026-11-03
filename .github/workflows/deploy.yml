@@ -8,31 +8,59 @@ on:
 permissions:
   contents: read
 
-# Never cancel a deploy halfway; queue the next one instead.
+# Never cancel an apply or deploy halfway; queue the next one instead. This is also what
+# keeps two applies from touching the Terraform state at once.
 concurrency:
   group: deploy
   cancel-in-progress: false
 
 jobs:
-  # Secrets can't be read in a job's `if`, so this job checks for them and the deploy job
-  # is skipped (rather than failing) until the Cloudflare secrets are set.
+  # Secrets can't be read in a job's `if`, so this job checks for them and the later jobs
+  # are skipped (rather than failing) until every secret is set.
   configured:
     runs-on: ubuntu-latest
     outputs:
-      cloudflare: ${{ steps.check.outputs.cloudflare }}
+      ready: ${{ steps.check.outputs.ready }}
     steps:
       - id: check
         env:
-          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: echo "cloudflare=${{ env.TOKEN != '' && env.ACCOUNT != '' }}" >> "$GITHUB_OUTPUT"
+          READY: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' && secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
+        run: echo "ready=$READY" >> "$GITHUB_OUTPUT"
+
+  # Infrastructure first, so the Pages project and domain exist before anything is uploaded.
+  infra:
+    needs: configured
+    if: needs.configured.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform apply
+        run: |
+          echo "endpoints = { s3 = \"https://${TF_VAR_account_id}.r2.cloudflarestorage.com\" }" > backend.hcl
+          terraform init -input=false -backend-config=backend.hcl
+          terraform apply -input=false -auto-approve
 
   deploy:
-    needs: configured
-    if: needs.configured.outputs.cloudflare == 'true'
+    needs: infra
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: production
+    environment:
+      name: production
+      url: https://liftboard.amri.dev
     steps:
       - uses: actions/checkout@v4
 
