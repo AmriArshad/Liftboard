@@ -30,8 +30,10 @@ export const dataset = {
     current = value
     saveDataset(value)
   },
-  clear() {
+  async clear() {
+    // Delete first, then leave the dashboard: once the upload screen shows, a reload can't
+    // bring the old data back. The delete takes milliseconds.
+    await clearDataset()
     current = null
-    clearDataset()
   },
 }

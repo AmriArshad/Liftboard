@@ -21,10 +21,10 @@
     { label: 'Progress', to: { view: 'progress' } },
   ]
 
-  function clear() {
+  async function clear() {
+    await dataset.clear()
     // Back to the upload screen, starting from the overview next time.
     location.hash = href({ view: 'overview' })
-    dataset.clear()
   }
 </script>
 
