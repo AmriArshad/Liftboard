@@ -1,0 +1,5 @@
+[
+  { "name": "Upload screen", "path": "dist/assets/index-*.js", "limit": "20 kB" },
+  { "name": "Dashboard (charts)", "path": "dist/assets/Dashboard-*.js", "limit": "180 kB" },
+  { "name": "Parser worker", "path": "dist/assets/worker-*.js", "limit": "10 kB" }
+]
