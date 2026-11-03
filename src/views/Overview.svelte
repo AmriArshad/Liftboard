@@ -3,14 +3,12 @@
   import WeeklyBars from '../components/charts/WeeklyBars.svelte'
   import { formatDateRange, formatInteger } from '../lib/format'
   import { overview } from '../lib/metrics/overview'
-  import type { Dataset } from '../lib/parse/types'
+  import type { Dataset, Unit } from '../lib/parse/types'
   import { fromKg } from '../lib/units'
 
-  let { data }: { data: Dataset } = $props()
+  let { data, unit }: { data: Dataset; unit: Unit } = $props()
 
   const summary = $derived(overview(data))
-  // Until the kg/lb toggle lands, show the unit the export was written in.
-  const unit = $derived(data.sourceUnit)
 </script>
 
 <main>
