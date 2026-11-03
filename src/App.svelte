@@ -1,23 +1,17 @@
 <script lang="ts">
-  import Upload from './components/Upload.svelte'
   import { dataset } from './lib/store/dataset.svelte'
+  import Upload from './views/Upload.svelte'
+
+  // The overview pulls in ECharts, most of the bundle. A dynamic import() puts it in its own
+  // chunk: the upload screen paints without it, and the download starts straight away so it's
+  // usually ready by the time a file has been parsed.
+  const overview = import('./views/Overview.svelte')
 </script>
 
 {#if dataset.current}
-  {@const count = dataset.current.workouts.length}
-  <!-- Placeholder until the overview lands. -->
-  <main>
-    <p>{count} {count === 1 ? 'workout' : 'workouts'}</p>
-  </main>
+  {#await overview then { default: Overview }}
+    <Overview data={dataset.current} />
+  {/await}
 {:else}
   <Upload />
 {/if}
-
-<style>
-  main {
-    display: grid;
-    place-items: center;
-    min-height: 100dvh;
-    padding: 16px;
-  }
-</style>

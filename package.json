@@ -39,6 +39,7 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
     "papaparse": "^5.7.0"
   }
 }
