@@ -9,6 +9,13 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    ignore:
+      # Types must match the Node version in .nvmrc (24), not the newest Node.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # svelte-check doesn't support TypeScript 7 (the native compiler) yet.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
     groups:
       dev-dependencies:
         dependency-type: development
