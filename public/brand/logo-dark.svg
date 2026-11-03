@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72">
+  <rect x="4" y="4" width="64" height="64" rx="15" fill="#0E0F12"/>
+  <path d="M18 49 L30 39 L39 44 L52 26" fill="none" stroke="#D4FF3F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="52" cy="26" r="5" fill="#D4FF3F"/>
+  <text x="84" y="48" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="600" letter-spacing="-1.2" fill="#F4F4F5">liftboard</text>
+</svg>
