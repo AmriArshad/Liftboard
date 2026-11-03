@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel a deploy halfway; queue the next one instead.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  # Secrets can't be read in a job's `if`, so this job checks for them and the deploy job
+  # is skipped (rather than failing) until the Cloudflare secrets are set.
+  configured:
+    runs-on: ubuntu-latest
+    outputs:
+      cloudflare: ${{ steps.check.outputs.cloudflare }}
+    steps:
+      - id: check
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: echo "cloudflare=${{ env.TOKEN != '' && env.ACCOUNT != '' }}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: configured
+    if: needs.configured.outputs.cloudflare == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=liftboard --branch=main
