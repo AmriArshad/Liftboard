@@ -3,7 +3,10 @@
   --text: #0e0f12;
   --accent: #d4ff3f;
   --error: #c4262e;
-  --series: #0e0f12;
+  /* Charts are neutral by default. The highlight is for the one series that matters most
+     (lime on dark; lime is too faint on white, so near-black there). */
+  --series: #52525b;
+  --highlight: #0e0f12;
   --on-accent: #0e0f12;
 
   font-family:
@@ -24,7 +27,8 @@
     --bg: #0e0f12;
     --text: #f4f4f5;
     --error: #ff7a7a;
-    --series: #d4ff3f;
+    --series: #a1a1aa;
+    --highlight: #d4ff3f;
   }
 }
 

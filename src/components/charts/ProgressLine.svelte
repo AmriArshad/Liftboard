@@ -62,10 +62,10 @@
         showSymbol: i === 0,
         lineStyle: {
           width: i === 0 ? 2 : 1.5,
-          color: i === 0 ? theme.series : theme.muted,
+          color: i === 0 ? theme.highlight : theme.series,
           type: i === 0 ? ('solid' as const) : ('dashed' as const),
         },
-        itemStyle: { color: i === 0 ? theme.series : theme.muted },
+        itemStyle: { color: i === 0 ? theme.highlight : theme.series },
       })),
     }
   }
@@ -97,7 +97,7 @@
     width: 14px;
     margin-right: 6px;
     vertical-align: middle;
-    border-top: 2px solid var(--series);
+    border-top: 2px solid var(--highlight);
   }
 
   .key li.secondary {
@@ -105,6 +105,6 @@
   }
 
   .key li.secondary::before {
-    border-top: 2px dashed var(--text);
+    border-top: 2px dashed var(--series);
   }
 </style>
