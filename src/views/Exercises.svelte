@@ -6,10 +6,10 @@
   import { MediaQuery } from 'svelte/reactivity'
   import ExerciseDetail from '../components/ExerciseDetail.svelte'
   import { exercises } from '../lib/metrics/exercise'
-  import type { Dataset } from '../lib/parse/types'
+  import type { Dataset, Unit } from '../lib/parse/types'
   import { href } from '../lib/store/route.svelte'
 
-  let { data, selected }: { data: Dataset; selected: string | null } = $props()
+  let { data, unit, selected }: { data: Dataset; unit: Unit; selected: string | null } = $props()
 
   const all = $derived(exercises(data))
 
@@ -51,7 +51,7 @@
       <a class="back" href={href({ view: 'exercises', exercise: null })}>← Exercises</a>
       <!-- {#key} rebuilds the detail when the exercise changes, so charts start fresh. -->
       {#key current.name}
-        <ExerciseDetail {data} exercise={current} unit={data.sourceUnit} />
+        <ExerciseDetail {data} exercise={current} {unit} />
       {/key}
     </section>
   {/if}

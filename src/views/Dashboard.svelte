@@ -1,14 +1,19 @@
 <!-- Everything shown once a dataset is loaded: the header with navigation, then the current view. -->
 <script lang="ts">
   import Logo from '../components/Logo.svelte'
+  import UnitToggle from '../components/UnitToggle.svelte'
   import type { Dataset } from '../lib/parse/types'
   import { dataset } from '../lib/store/dataset.svelte'
   import { href, route, type Route } from '../lib/store/route.svelte'
+  import { unitPreference } from '../lib/store/units.svelte'
   import Exercises from './Exercises.svelte'
   import Overview from './Overview.svelte'
   import Progress from './Progress.svelte'
 
   let { data }: { data: Dataset } = $props()
+
+  // The user's choice if they've made one, otherwise whatever the export used.
+  const unit = $derived(unitPreference.current ?? data.sourceUnit)
 
   const links: { label: string; to: Route }[] = [
     { label: 'Overview', to: { view: 'overview' } },
@@ -42,19 +47,24 @@
 </header>
 
 {#if route.current.view === 'exercises'}
-  <Exercises {data} selected={route.current.exercise} />
+  <Exercises {data} {unit} selected={route.current.exercise} />
 {:else if route.current.view === 'progress'}
-  <Progress {data} />
+  <Progress {data} {unit} />
 {:else}
-  <Overview {data} />
+  <Overview {data} {unit} />
 {/if}
 
 <footer>
+  <UnitToggle {unit} />
   <button type="button" onclick={clear}>Clear my data</button>
 </footer>
 
 <style>
   footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     max-width: 960px;
     margin: 0 auto;
     padding: 0 16px 32px;

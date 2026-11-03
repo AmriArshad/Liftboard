@@ -2,13 +2,12 @@
 <script lang="ts">
   import { formatDate, formatDecimal, formatWeight } from '../lib/format'
   import { personalRecords, stalledLifts, type RecordKind } from '../lib/metrics/progress'
-  import type { Dataset } from '../lib/parse/types'
+  import type { Dataset, Unit } from '../lib/parse/types'
   import { href } from '../lib/store/route.svelte'
   import { fromKg } from '../lib/units'
 
-  let { data }: { data: Dataset } = $props()
+  let { data, unit }: { data: Dataset; unit: Unit } = $props()
 
-  const unit = $derived(data.sourceUnit)
   const stalled = $derived(stalledLifts(data))
   const records = $derived(personalRecords(data))
 
