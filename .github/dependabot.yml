@@ -1,0 +1,29 @@
+# Weekly dependency updates, grouped so they arrive as a few PRs rather than dozens.
+# Commit prefixes follow Conventional Commits, so release-please sorts them correctly.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+      dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+
+  # Actions are pinned to commit SHAs; Dependabot bumps the SHA and the version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
