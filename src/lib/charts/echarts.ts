@@ -42,6 +42,7 @@ export interface ChartTheme {
   muted: string
   faint: string
   series: string
+  highlight: string
 }
 
 // ECharts can't read CSS variables or color-mix(), so colours are resolved to plain values here.
@@ -55,6 +56,7 @@ export function readTheme(element: Element): ChartTheme {
     muted: withAlpha(text, 0.6),
     faint: withAlpha(text, 0.08),
     series: token('--series'),
+    highlight: token('--highlight'),
   }
 }
 
