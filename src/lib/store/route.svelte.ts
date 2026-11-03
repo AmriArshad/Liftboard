@@ -2,20 +2,24 @@
 // button, refresh and shared links work. The hash never reaches a server, so nothing here
 // sends workout data anywhere.
 
-export type Route = { view: 'overview' } | { view: 'exercises'; exercise: string | null }
+export type Route =
+  { view: 'overview' } | { view: 'exercises'; exercise: string | null } | { view: 'progress' }
 
 function parse(hash: string): Route {
   const [view, exercise] = hash.replace(/^#\/?/, '').split('/')
   if (view === 'exercises') {
     return { view, exercise: exercise ? decodeURIComponent(exercise) : null }
   }
+  if (view === 'progress') return { view }
   return { view: 'overview' }
 }
 
 /** The link for a route, for use in <a href>. */
 export function href(route: Route): string {
-  if (route.view === 'overview') return '#/'
-  return route.exercise ? `#/exercises/${encodeURIComponent(route.exercise)}` : '#/exercises'
+  if (route.view === 'exercises') {
+    return route.exercise ? `#/exercises/${encodeURIComponent(route.exercise)}` : '#/exercises'
+  }
+  return route.view === 'progress' ? '#/progress' : '#/'
 }
 
 let current = $state<Route>(parse(location.hash))
