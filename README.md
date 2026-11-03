@@ -4,6 +4,7 @@
 </picture>
 
 [![CI](https://github.com/AmriArshad/Liftboard/actions/workflows/ci.yml/badge.svg)](https://github.com/AmriArshad/Liftboard/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/AmriArshad/Liftboard/badge)](https://scorecard.dev/viewer/?uri=github.com/AmriArshad/Liftboard)
 
 Explore your Hevy workout history in the browser. Your CSV never leaves your device.
 
