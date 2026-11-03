@@ -16,11 +16,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "generate:demo": "node scripts/generate-demo.ts"
+    "generate:demo": "node scripts/generate-demo.ts",
+    "size": "size-limit",
+    "lighthouse": "lhci autorun"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@lhci/cli": "^0.16.0",
     "@playwright/test": "^1.64.1",
+    "@size-limit/file": "^14.3.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.19.2",
@@ -31,6 +35,7 @@
     "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1",
+    "size-limit": "^14.3.0",
     "svelte": "^5.57.3",
     "svelte-check": "^4.7.8",
     "typescript": "~6.0.3",
