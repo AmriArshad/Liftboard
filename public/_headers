@@ -1,0 +1,17 @@
+# Response headers for Cloudflare Pages: https://developers.cloudflare.com/pages/configuration/headers/
+# tests/e2e/security.spec.ts applies the same Content-Security-Policy to every e2e page, so a
+# change that the policy would block fails CI instead of breaking the live site.
+#
+# Everything is served from this origin: no CDNs, no analytics, no calls to other hosts.
+
+/*
+  Content-Security-Policy: default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  Referrer-Policy: no-referrer
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
+  X-Content-Type-Options: nosniff
+  Cross-Origin-Opener-Policy: same-origin
+
+# Vite puts a content hash in every asset's filename, so these never change once deployed.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
