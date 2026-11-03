@@ -7,3 +7,7 @@ public/brand
 public/favicon.svg
 CLAUDE.md
 .lighthouseci
+
+# Written by release-please in its own format
+CHANGELOG.md
+.release-please-manifest.json
