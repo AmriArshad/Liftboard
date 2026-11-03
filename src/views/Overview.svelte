@@ -1,7 +1,6 @@
 <script lang="ts">
   import WeekHeatmap from '../components/charts/WeekHeatmap.svelte'
   import WeeklyBars from '../components/charts/WeeklyBars.svelte'
-  import Logo from '../components/Logo.svelte'
   import { formatDateRange, formatInteger } from '../lib/format'
   import { overview } from '../lib/metrics/overview'
   import type { Dataset } from '../lib/parse/types'
@@ -15,10 +14,6 @@
 </script>
 
 <main>
-  <header>
-    <Logo width={140} />
-  </header>
-
   <section class="summary">
     <h1>
       <strong>{formatInteger(summary.workouts)}</strong>
@@ -59,7 +54,7 @@
     gap: 40px;
     max-width: 960px;
     margin: 0 auto;
-    padding: 24px 16px 64px;
+    padding: 16px 16px 64px;
   }
 
   h1 {

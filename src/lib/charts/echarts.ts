@@ -1,8 +1,8 @@
 // The one place ECharts is imported. Registering only the chart types and components we use
 // lets the bundler drop the rest of the library (importing 'echarts' itself would pull in all of it).
 
-import { BarChart, HeatmapChart } from 'echarts/charts'
-import type { BarSeriesOption, HeatmapSeriesOption } from 'echarts/charts'
+import { BarChart, HeatmapChart, LineChart } from 'echarts/charts'
+import type { BarSeriesOption, HeatmapSeriesOption, LineSeriesOption } from 'echarts/charts'
 import { GridComponent, TooltipComponent, VisualMapPiecewiseComponent } from 'echarts/components'
 import type {
   GridComponentOption,
@@ -16,6 +16,7 @@ import { SVGRenderer } from 'echarts/renderers'
 echarts.use([
   BarChart,
   HeatmapChart,
+  LineChart,
   GridComponent,
   TooltipComponent,
   VisualMapPiecewiseComponent,
@@ -28,6 +29,7 @@ export { echarts }
 export type ChartOption = ComposeOption<
   | BarSeriesOption
   | HeatmapSeriesOption
+  | LineSeriesOption
   | GridComponentOption
   | TooltipComponentOption
   | VisualMapComponentOption
