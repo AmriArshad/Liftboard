@@ -3,6 +3,7 @@
   --text: #0e0f12;
   --accent: #d4ff3f;
   --error: #c4262e;
+  --series: #0e0f12;
 
   font-family:
     Inter,
@@ -22,6 +23,7 @@
     --bg: #0e0f12;
     --text: #f4f4f5;
     --error: #ff7a7a;
+    --series: #d4ff3f;
   }
 }
 

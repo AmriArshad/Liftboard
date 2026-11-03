@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Logo from '../components/Logo.svelte'
   import { parseFile } from '../lib/parse/load'
   import { dataset } from '../lib/store/dataset.svelte'
 
@@ -55,12 +56,7 @@
 <svelte:window {ondragover} {ondragleave} {ondrop} />
 
 <main>
-  <h1>
-    <picture>
-      <source srcset="/brand/logo-dark.svg" media="(prefers-color-scheme: dark)" />
-      <img src="/brand/logo-light.svg" alt="liftboard" width="300" height="72" />
-    </picture>
-  </h1>
+  <h1><Logo /></h1>
 
   <!-- A <label> around the input makes the whole zone open the file picker, with no click handler. -->
   <label class="drop" class:dragging aria-busy={loading}>
@@ -92,12 +88,6 @@
 
   h1 {
     margin: 0 0 16px;
-  }
-
-  img {
-    display: block;
-    width: 200px;
-    height: auto;
   }
 
   .drop {

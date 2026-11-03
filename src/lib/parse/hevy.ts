@@ -2,10 +2,8 @@
 // Pure functions only: no DOM, no Svelte, so everything here is unit-testable.
 
 import Papa from 'papaparse'
+import { KG_PER_LB, KM_PER_MILE } from '../units'
 import type { Dataset, SetType, Unit, Workout, WorkoutSet } from './types'
-
-const KG_PER_LB = 0.45359237
-const KM_PER_MILE = 1.609344
 
 /** Thrown for any file we can't read. The message is short enough to show to the user as is. */
 export class HevyParseError extends Error {
