@@ -2,32 +2,42 @@
 <script lang="ts">
   import Logo from '../components/Logo.svelte'
   import type { Dataset } from '../lib/parse/types'
-  import { href, route } from '../lib/store/route.svelte'
+  import { href, route, type Route } from '../lib/store/route.svelte'
   import Exercises from './Exercises.svelte'
   import Overview from './Overview.svelte'
+  import Progress from './Progress.svelte'
 
   let { data }: { data: Dataset } = $props()
 
-  const view = $derived(route.current.view)
+  const links: { label: string; to: Route }[] = [
+    { label: 'Overview', to: { view: 'overview' } },
+    { label: 'Exercises', to: { view: 'exercises', exercise: null } },
+    { label: 'Progress', to: { view: 'progress' } },
+  ]
 </script>
 
 <header>
-  <a href={href({ view: 'overview' })} class="logo"><Logo width={120} /></a>
+  <a href={href({ view: 'overview' })} class="home">
+    <span class="wordmark"><Logo width={120} /></span>
+    <!-- Phones get the square icon so all three links fit. -->
+    <img class="icon" src="/brand/icon.svg" alt="liftboard" width="32" height="32" />
+  </a>
   <nav>
-    <a href={href({ view: 'overview' })} aria-current={view === 'overview' ? 'page' : undefined}>
-      Overview
-    </a>
-    <a
-      href={href({ view: 'exercises', exercise: null })}
-      aria-current={view === 'exercises' ? 'page' : undefined}
-    >
-      Exercises
-    </a>
+    {#each links as link (link.label)}
+      <a
+        href={href(link.to)}
+        aria-current={route.current.view === link.to.view ? 'page' : undefined}
+      >
+        {link.label}
+      </a>
+    {/each}
   </nav>
 </header>
 
 {#if route.current.view === 'exercises'}
   <Exercises {data} selected={route.current.exercise} />
+{:else if route.current.view === 'progress'}
+  <Progress {data} />
 {:else}
   <Overview {data} />
 {/if}
@@ -43,8 +53,12 @@
     padding: 16px;
   }
 
-  .logo {
+  .home {
     flex-shrink: 0;
+  }
+
+  .icon {
+    display: none;
   }
 
   nav {
@@ -70,5 +84,19 @@
     opacity: 1;
     color: var(--on-accent);
     background: var(--accent);
+  }
+
+  @media (max-width: 519px) {
+    .wordmark {
+      display: none;
+    }
+
+    .icon {
+      display: block;
+    }
+
+    nav a {
+      padding: 6px 10px;
+    }
   }
 </style>

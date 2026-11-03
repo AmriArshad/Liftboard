@@ -51,6 +51,7 @@
 <style>
   main {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 40px;
     max-width: 960px;
     margin: 0 auto;
