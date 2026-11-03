@@ -14,7 +14,7 @@
     loading = true
     error = null
     try {
-      dataset.set(await parseFile(file))
+      dataset.load(await parseFile(file))
     } catch (e) {
       error = e instanceof Error ? e.message : "Couldn't read this file."
     } finally {

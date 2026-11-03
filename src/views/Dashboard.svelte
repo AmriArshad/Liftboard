@@ -2,6 +2,7 @@
 <script lang="ts">
   import Logo from '../components/Logo.svelte'
   import type { Dataset } from '../lib/parse/types'
+  import { dataset } from '../lib/store/dataset.svelte'
   import { href, route, type Route } from '../lib/store/route.svelte'
   import Exercises from './Exercises.svelte'
   import Overview from './Overview.svelte'
@@ -14,6 +15,12 @@
     { label: 'Exercises', to: { view: 'exercises', exercise: null } },
     { label: 'Progress', to: { view: 'progress' } },
   ]
+
+  function clear() {
+    // Back to the upload screen, starting from the overview next time.
+    location.hash = href({ view: 'overview' })
+    dataset.clear()
+  }
 </script>
 
 <header>
@@ -42,7 +49,33 @@
   <Overview {data} />
 {/if}
 
+<footer>
+  <button type="button" onclick={clear}>Clear my data</button>
+</footer>
+
 <style>
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 16px 32px;
+  }
+
+  footer button {
+    padding: 8px 0;
+    border: 0;
+    font: inherit;
+    font-size: 0.875rem;
+    color: inherit;
+    background: none;
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  footer button:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
   header {
     display: flex;
     align-items: center;

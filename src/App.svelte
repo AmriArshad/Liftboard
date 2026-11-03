@@ -8,10 +8,11 @@
   const dashboard = import('./views/Dashboard.svelte')
 </script>
 
+<!-- Nothing renders for the moment it takes to read a saved dataset from IndexedDB. -->
 {#if dataset.current}
   {#await dashboard then { default: Dashboard }}
     <Dashboard data={dataset.current} />
   {/await}
-{:else}
+{:else if !dataset.restoring}
   <Upload />
 {/if}
