@@ -18,7 +18,8 @@
     "test:e2e": "playwright test",
     "generate:demo": "node scripts/generate-demo.ts",
     "size": "size-limit",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun",
+    "generate:icons": "node scripts/generate-icons.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -41,6 +42,7 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.0"
   },
   "dependencies": {
