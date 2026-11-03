@@ -7,6 +7,8 @@
 
 Explore your Hevy workout history in the browser. Your CSV never leaves your device.
 
+**[liftboard.amri.dev](https://liftboard.amri.dev)**
+
 ![The liftboard overview: total workouts, a workouts-per-week heatmap and weekly volume](docs/screenshot.png)
 
 ## Use it
