@@ -59,3 +59,23 @@ npm run dev
 | `npm test`              | Unit tests (Vitest)                        |
 | `npm run test:e2e`      | End-to-end tests (Playwright)              |
 | `npm run generate:demo` | Regenerate the synthetic `public/demo.csv` |
+| `npm run size`          | Check the bundle-size budget (after build) |
+| `npm run lighthouse`    | Check the Lighthouse budget (after build)  |
+
+## Infrastructure and deployment
+
+Terraform in [`infra/`](infra/) manages the Pages project, the `liftboard.amri.dev` domain and
+its DNS record ([ADR 0004](docs/adr/0004-terraform.md)). Every pull request gets a Terraform
+plan and a preview deploy posted as comments. Every push to `main` applies Terraform, then
+deploys.
+
+One-time setup, the only part done by hand:
+
+1. Create an R2 bucket named `liftboard-tfstate`, and an R2 API token with Object Read &
+   Write on it.
+2. Create a Cloudflare API token with **Account · Cloudflare Pages: Edit**, **Zone · DNS:
+   Edit** and **Zone · Zone: Read**, limited to the `amri.dev` zone.
+3. Add the repository secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
+   `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
+
+Until all four are set, the plan, preview and deploy steps are skipped rather than failing.

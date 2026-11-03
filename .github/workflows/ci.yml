@@ -42,6 +42,15 @@ jobs:
 
       - run: npm run test:e2e
 
+      # The preview job deploys exactly what was tested here.
+      - name: Keep the build for the preview deploy
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 1
+
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -51,3 +60,108 @@ jobs:
             playwright-report
             .lighthouseci
           retention-days: 7
+
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # Secrets aren't available to forks or before they're configured; skip the plan then.
+      HAS_SECRETS: ${{ secrets.R2_ACCESS_KEY_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          # Plain output, so the plan can be written to a file and posted as a comment.
+          terraform_wrapper: false
+
+      - run: terraform fmt -check -recursive
+
+      # Validation needs the provider schema but not the state, so no credentials.
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+
+      - name: Plan
+        if: github.event_name == 'pull_request' && env.HAS_SECRETS == 'true'
+        run: |
+          echo "endpoints = { s3 = \"https://${TF_VAR_account_id}.r2.cloudflarestorage.com\" }" > backend.hcl
+          terraform init -reconfigure -input=false -backend-config=backend.hcl
+          terraform plan -input=false -no-color -lock=false > plan.txt
+
+      - name: Post the plan on the pull request
+        if: github.event_name == 'pull_request' && env.HAS_SECRETS == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const plan = fs.readFileSync('infra/plan.txt', 'utf8')
+            // Keep the summary line visible and stay under GitHub's comment size limit.
+            const summary = plan.match(/^(Plan:.*|No changes\..*)$/m)?.[0] ?? 'See the run log.'
+            const body = [
+              '<!-- liftboard:terraform-plan -->',
+              `### Terraform plan: ${summary}`,
+              '<details><summary>Full plan</summary>',
+              '',
+              '```',
+              plan.slice(-60000),
+              '```',
+              '</details>',
+            ].join('\n')
+            const { owner, repo } = context.repo
+            const issue_number = context.issue.number
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number })
+            const existing = comments.find((c) => c.body?.includes('liftboard:terraform-plan'))
+            if (existing) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body })
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body })
+
+  preview:
+    needs: verify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      HAS_SECRETS: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        if: env.HAS_SECRETS == 'true'
+        with:
+          name: dist
+          path: dist
+
+      # A non-production branch deploy gets its own URL and never touches the live site.
+      - name: Deploy preview to Cloudflare Pages
+        id: deploy
+        if: env.HAS_SECRETS == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=liftboard --branch=${{ github.head_ref }}
+
+      - name: Post the preview URL on the pull request
+        if: env.HAS_SECRETS == 'true'
+        uses: actions/github-script@v7
+        env:
+          URL: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
+        with:
+          script: |
+            const body = `<!-- liftboard:preview -->\n### Preview: ${process.env.URL}\n\nBuilt from ${context.payload.pull_request.head.sha.slice(0, 7)}.`
+            const { owner, repo } = context.repo
+            const issue_number = context.issue.number
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number })
+            const existing = comments.find((c) => c.body?.includes('liftboard:preview'))
+            if (existing) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body })
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body })

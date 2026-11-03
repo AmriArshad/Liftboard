@@ -25,3 +25,7 @@ test-results
 
 # Lighthouse CI reports
 .lighthouseci
+
+# Generated in CI
+infra/backend.hcl
+infra/plan.txt
