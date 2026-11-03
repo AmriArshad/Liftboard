@@ -5,7 +5,5 @@ export default defineConfig({
   plugins: [svelte()],
   test: {
     include: ['tests/unit/**/*.test.ts'],
-    // Nothing to test until the parser lands; keep CI green until then.
-    passWithNoTests: true,
   },
 })
