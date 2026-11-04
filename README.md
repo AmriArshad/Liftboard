@@ -82,3 +82,7 @@ One-time setup, the only part done by hand:
    `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`.
 
 Until all four are set, the plan, preview and deploy steps are skipped rather than failing.
+
+## License
+
+[MIT](LICENSE)
