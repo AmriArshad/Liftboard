@@ -105,6 +105,8 @@
   }
 
   .home {
+    color: inherit;
+    text-decoration: none;
     flex-shrink: 0;
   }
 

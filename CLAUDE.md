@@ -21,7 +21,7 @@ I want this to be as perfect as Linear's website or Apple Notes: simple purpose,
 - Name: Liftboard, written as lowercase `liftboard` in the wordmark.
 - Logo: a rising progress line ending in a dot, on a near-black rounded square. Files are in `public/brand/`: `icon.svg` (also used as `favicon.svg`), `mark.svg` (uses `currentColor`), `logo-dark.svg`, `logo-light.svg`.
 - Colours: background `#0E0F12`, accent `#D4FF3F` (use it sparingly: the active state, the selected series, PR highlights), text `#F4F4F5` on dark and `#0E0F12` on light.
-- Font: Inter, falling back to the system font.
+- Font: Geist (self-hosted via `@fontsource-variable/geist`), falling back to the system font. Large display numbers use weight 300.
 
 ## Stack
 

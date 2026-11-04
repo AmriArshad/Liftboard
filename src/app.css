@@ -21,13 +21,15 @@
   --warn: #a35a00;
 
   font-family:
-    Inter,
+    'Geist Variable',
     system-ui,
     -apple-system,
     'Segoe UI',
     Helvetica,
     Arial,
     sans-serif;
+  /* Geist is a little wide at small sizes; a hair of negative tracking tightens it. */
+  letter-spacing: -0.005em;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;

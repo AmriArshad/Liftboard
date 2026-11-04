@@ -375,7 +375,7 @@
 
   h1 strong {
     font-size: 2.75rem;
-    font-weight: 400;
+    font-weight: 300;
     letter-spacing: -0.03em;
   }
 
@@ -438,7 +438,7 @@
   /* Big numbers in a light weight: large, calm, easy to scan. */
   .big {
     font-size: 2.5rem;
-    font-weight: 400;
+    font-weight: 300;
     letter-spacing: -0.03em;
     line-height: 1.1;
   }
@@ -459,7 +459,7 @@
   .huge {
     margin-top: 12px;
     font-size: 4.5rem;
-    font-weight: 400;
+    font-weight: 300;
     letter-spacing: -0.05em;
     line-height: 1;
   }
