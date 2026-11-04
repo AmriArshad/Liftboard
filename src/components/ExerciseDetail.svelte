@@ -81,6 +81,10 @@
 
   /** Every working set of a session, compactly: "95 × 6, 95 × 4" or "12, 11, 10". */
   function setsText(session: Session): string {
+    // Cardio has one line per session; its time is the useful second number.
+    if (exercise.kind === 'cardio') {
+      return session.durationSeconds === null ? '' : formatDuration(session.durationSeconds)
+    }
     return session.sets
       .map((set) => {
         if (exercise.kind === 'timed') {
@@ -92,6 +96,22 @@
       })
       .filter(Boolean)
       .join(', ')
+  }
+
+  /** The number a session is judged by: its top set, best reps, longest hold or distance. */
+  function headline(session: Session): string {
+    if (exercise.kind === 'weighted') {
+      const top = session.topSet
+      if (!top) return ''
+      return `${weight(top.weightKg)}${top.reps === null ? '' : ` × ${top.reps}`}`
+    }
+    if (exercise.kind === 'bodyweight') {
+      return session.bestReps === null ? '' : `${session.bestReps} reps`
+    }
+    if (exercise.kind === 'timed') {
+      return session.longestSeconds === null ? '' : formatDuration(session.longestSeconds)
+    }
+    return session.distanceKm === null ? '' : distance(session.distanceKm)
   }
 
   /** Points for the chart, skipping sessions without a value. */
@@ -197,59 +217,24 @@
   </div>
 {/if}
 
-<h2>Sessions</h2>
-<div class="table">
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        {#if exercise.kind === 'weighted'}
-          <th>Top set</th>
-          <th>e1RM</th>
-          <th>Sets</th>
-        {:else if exercise.kind === 'bodyweight'}
-          <th>Best</th>
-          <th>Sets</th>
-        {:else if exercise.kind === 'timed'}
-          <th>Longest</th>
-          <th>Sets</th>
-        {:else}
-          <th>Distance</th>
-          <th>Time</th>
-        {/if}
-      </tr>
-    </thead>
-    <tbody>
-      {#each newestFirst as session (`${session.date.getTime()} ${session.workout}`)}
-        <tr>
-          <td><a href={workoutLink(session.date)}>{formatDate(session.date)}</a></td>
-          {#if exercise.kind === 'weighted'}
-            <td>
-              {#if session.topSet}
-                {weight(session.topSet.weightKg)}{session.topSet.reps === null
-                  ? ''
-                  : ` × ${session.topSet.reps}`}
-              {/if}
-            </td>
-            <td>{session.bestE1rmKg === null ? '' : estimate(session.bestE1rmKg)}</td>
-            <td class="sets">{setsText(session)}</td>
-          {:else if exercise.kind === 'bodyweight'}
-            <td>{session.bestReps === null ? '' : `${session.bestReps} reps`}</td>
-            <td class="sets">{setsText(session)}</td>
-          {:else if exercise.kind === 'timed'}
-            <td>{session.longestSeconds === null ? '' : formatDuration(session.longestSeconds)}</td>
-            <td class="sets">{setsText(session)}</td>
-          {:else}
-            <td>{session.distanceKm === null ? '' : distance(session.distanceKm)}</td>
-            <td>
-              {session.durationSeconds === null ? '' : formatDuration(session.durationSeconds)}
-            </td>
-          {/if}
-        </tr>
-      {/each}
-    </tbody>
-  </table>
-</div>
+<h2 id="sessions">Sessions</h2>
+<!-- Two lines per session: the date and its headline number, then every set, quieter. A list
+     rather than a table, so nothing runs off the side of a phone. -->
+<ul class="sessions" aria-labelledby="sessions">
+  {#each newestFirst as session (`${session.date.getTime()} ${session.workout}`)}
+    {@const sets = setsText(session)}
+    <li>
+      <a href={workoutLink(session.date)}>{formatDate(session.date)}</a>
+      <span class="headline">{headline(session)}</span>
+      {#if sets}
+        <span class="detail">{sets}</span>
+      {/if}
+      {#if session.bestE1rmKg !== null && exercise.kind === 'weighted'}
+        <span class="detail aside">e1RM {estimate(session.bestE1rmKg)}</span>
+      {/if}
+    </li>
+  {/each}
+</ul>
 
 <style>
   h1 {
@@ -305,11 +290,36 @@
     min-width: min(100%, 360px);
   }
 
-  /* The list of sets can run long; let it wrap rather than widen the table. */
-  td.sets {
-    white-space: normal;
-    min-width: 12ch;
-    opacity: 0.75;
+  .sessions {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sessions li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  }
+
+  .headline,
+  .aside {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* Every set, which can run long, wraps under the date. */
+  .detail {
+    grid-column: 1;
+    font-size: 0.875rem;
+    opacity: 0.6;
+  }
+
+  .detail.aside {
+    grid-column: 2;
   }
 
   .table {

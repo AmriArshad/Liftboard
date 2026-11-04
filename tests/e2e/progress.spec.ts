@@ -19,7 +19,7 @@ test('keeps the page within the screen width', async ({ page }) => {
 })
 
 test('shows the latest records, then all of them', async ({ page }) => {
-  const rows = page.getByRole('row')
+  const rows = page.getByRole('region', { name: 'Personal records' }).getByRole('listitem')
   await expect(rows).toHaveCount(20)
 
   await page.getByRole('button', { name: /^Show all \d+$/ }).click()

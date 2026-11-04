@@ -160,6 +160,17 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Tighter on phones, so all four numbers share one line instead of leaving one alone. */
+  @media (max-width: 519px) {
+    .stats {
+      gap: 8px 24px;
+    }
+
+    dd {
+      font-size: 1.25rem;
+    }
+  }
+
   .exercise {
     margin-top: 32px;
   }

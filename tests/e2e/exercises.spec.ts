@@ -21,13 +21,14 @@ test('finds an exercise and shows its history', async ({ page }) => {
   await expect(page.getByText('Best e1RM')).toBeVisible()
 
   // The progressive demo never beats a later set at fewer reps, so one rep max is left.
-  const [repMaxes, history] = [page.getByRole('table').first(), page.getByRole('table').last()]
+  const repMaxes = page.getByRole('table')
   await expect(repMaxes.getByRole('columnheader')).toHaveText(['Reps', 'Weight', 'Date'])
-  await expect(history.getByRole('columnheader')).toHaveText(['Date', 'Top set', 'e1RM', 'Sets'])
-  // One row per session, plus the header.
-  await expect(history.getByRole('row')).toHaveCount(22)
-  // Every set of the latest session.
-  await expect(history.getByRole('row').nth(1)).toContainText('95 × 6, 95 × 4, 95 × 4')
+  const history = page.getByRole('list', { name: 'Sessions' }).getByRole('listitem')
+  await expect(history).toHaveCount(21)
+  // The latest session: its top set, every set and its e1RM.
+  await expect(history.first()).toContainText('95 kg × 6')
+  await expect(history.first()).toContainText('95 × 6, 95 × 4, 95 × 4')
+  await expect(history.first()).toContainText('e1RM 114 kg')
 
   // The date opens that workout.
   await history.getByRole('link').first().click()
@@ -39,7 +40,9 @@ test('shows reps for bodyweight exercises', async ({ page }) => {
   await page.getByRole('link', { name: 'Exercises' }).click()
   await page.getByRole('link', { name: 'Pull Up', exact: true }).click()
 
-  await expect(page.getByRole('columnheader')).toHaveText(['Date', 'Best', 'Sets'])
+  const latest = page.getByRole('list', { name: 'Sessions' }).getByRole('listitem').first()
+  await expect(latest).toContainText(/\d+ reps/)
+  await expect(latest).not.toContainText('kg')
 })
 
 test('switches between one and two columns as the window resizes', async ({ page }) => {
@@ -63,5 +66,8 @@ test('opens an exercise straight from its link', async ({ page }) => {
   await loadDemo(page, '/#/exercises/Walking')
 
   await expect(page.getByRole('heading', { name: 'Walking' })).toBeVisible()
-  await expect(page.getByRole('columnheader')).toHaveText(['Date', 'Distance', 'Time'])
+  // Cardio: each session's distance, with its time underneath.
+  const latest = page.getByRole('list', { name: 'Sessions' }).getByRole('listitem').first()
+  await expect(latest).toContainText(/\d km/)
+  await expect(latest).toContainText(/\d:\d\d/)
 })
