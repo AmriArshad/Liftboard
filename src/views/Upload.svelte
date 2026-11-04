@@ -74,6 +74,17 @@
   {/if}
 
   <button type="button" onclick={loadDemo} disabled={loading}>Try the demo</button>
+
+  <!-- <details> is a native disclosure: it opens and closes with no script, and keyboards and
+       screen readers already know how to use it. -->
+  <details>
+    <summary>How do I get my CSV?</summary>
+    <ol>
+      <li>In Hevy, open Settings.</li>
+      <li>Tap Export & Import Data.</li>
+      <li>Tap Export Workouts and save the file.</li>
+    </ol>
+  </details>
 </main>
 
 <style>
@@ -170,5 +181,40 @@
 
   button:disabled {
     cursor: progress;
+  }
+
+  /* As quiet as the demo button until it's opened. */
+  details {
+    font-size: 0.875rem;
+  }
+
+  summary {
+    padding: 4px 8px;
+    border-radius: 8px;
+    text-align: center;
+    opacity: 0.7;
+    cursor: pointer;
+    /* Hide the default triangle; the question reads as a link on its own. */
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover,
+  details[open] summary {
+    opacity: 1;
+  }
+
+  summary:hover {
+    text-decoration: underline;
+  }
+
+  ol {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    line-height: 1.6;
+    opacity: 0.8;
   }
 </style>

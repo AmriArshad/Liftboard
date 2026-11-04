@@ -13,6 +13,17 @@ test('loads the demo', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: '62 workouts' })).toBeVisible()
 })
 
+test('explains how to export from Hevy', async ({ page }) => {
+  const steps = page.getByRole('listitem')
+  await expect(steps.first()).toBeHidden()
+  await page.getByText('How do I get my CSV?').click()
+  await expect(steps).toHaveText([
+    'In Hevy, open Settings.',
+    'Tap Export & Import Data.',
+    'Tap Export Workouts and save the file.',
+  ])
+})
+
 test('loads a chosen file', async ({ page }) => {
   await page.locator('input[type=file]').setInputFiles(fixture('kg-export.csv'))
   await expect(page.getByRole('heading', { level: 1, name: '2 workouts' })).toBeVisible()
