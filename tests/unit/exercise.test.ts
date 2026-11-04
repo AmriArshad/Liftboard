@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { e1rm, exercises, sessions } from '../../src/lib/metrics/exercise'
+import { e1rm, exercises, repRecords, sessions } from '../../src/lib/metrics/exercise'
 import type { Dataset, Workout, WorkoutSet } from '../../src/lib/parse/types'
 
 function set(exercise: string, fields: Partial<WorkoutSet> = {}): WorkoutSet {
@@ -128,6 +128,40 @@ describe('sessions', () => {
     expect(sessions(data, 'Squat').map((s) => [s.workout, s.topSet?.weightKg])).toEqual([
       ['Legs', 100],
       ['Legs B', 102.5],
+    ])
+  })
+})
+
+describe('repRecords', () => {
+  it('finds the heaviest weight for at least each rep count done, first time it was lifted', () => {
+    const data = dataset([
+      workout(new Date(2026, 9, 1), [
+        set('Bench', { weightKg: 100, reps: 3 }),
+        set('Bench', { weightKg: 90, reps: 6 }),
+      ]),
+      workout(new Date(2026, 9, 8), [
+        set('Bench', { type: 'warmup', weightKg: 120, reps: 1 }),
+        set('Bench', { weightKg: 95, reps: 5 }),
+        set('Bench', { weightKg: 90, reps: 6 }),
+      ]),
+    ])
+
+    expect(repRecords(sessions(data, 'Bench'))).toEqual([
+      { reps: 3, weightKg: 100, date: new Date(2026, 9, 1) },
+      { reps: 5, weightKg: 95, date: new Date(2026, 9, 8) },
+      { reps: 6, weightKg: 90, date: new Date(2026, 9, 1) },
+    ])
+  })
+
+  it('keeps only the most reps at each weight', () => {
+    const data = dataset([
+      workout(new Date(2026, 9, 1), [
+        set('Bench', { weightKg: 95, reps: 3 }),
+        set('Bench', { weightKg: 95, reps: 6 }),
+      ]),
+    ])
+    expect(repRecords(sessions(data, 'Bench'))).toEqual([
+      { reps: 6, weightKg: 95, date: new Date(2026, 9, 1) },
     ])
   })
 })

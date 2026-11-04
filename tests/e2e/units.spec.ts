@@ -5,7 +5,8 @@ test('switches between kg and lb and remembers the choice', async ({ page }) => 
   await page.getByRole('button', { name: 'Try the demo' }).click()
 
   // The demo export is in kg, so that's the starting unit.
-  const topSet = page.getByRole('row').nth(1).getByRole('cell').nth(1)
+  // The latest session's top set, in the session table below the rep maxes.
+  const topSet = page.getByRole('table').last().getByRole('row').nth(1).getByRole('cell').nth(1)
   await expect(topSet).toContainText(' kg × ')
   await expect(page.getByRole('radio', { name: 'kg' })).toBeChecked()
 

@@ -130,3 +130,42 @@ export function sessions(dataset: Dataset, exercise: string): Session[] {
 
   return result
 }
+
+export interface RepRecord {
+  reps: number
+  /** The heaviest weight lifted for at least `reps` reps. */
+  weightKg: number
+  /** When that weight was first lifted for that many reps. */
+  date: Date
+}
+
+/**
+ * Your rep maxes: for each rep count you've done, the heaviest weight lifted for at least that
+ * many reps. A set of 100 kg × 6 also proves a 5-rep max of 100 kg, so only the highest rep
+ * count at each weight is kept: what's left are the sets nothing has beaten on both weight
+ * and reps. Working sets only, fewest reps first.
+ */
+export function repRecords(history: Session[]): RepRecord[] {
+  const sets = history.flatMap((session) =>
+    session.sets.flatMap((set) =>
+      set.weightKg !== null && set.reps !== null && set.reps > 0
+        ? [{ weightKg: set.weightKg, reps: set.reps, date: session.date }]
+        : [],
+    ),
+  )
+  const counts = [...new Set(sets.map((s) => s.reps))].sort((a, b) => a - b)
+
+  const maxes = counts.map((reps) => {
+    let best: RepRecord | null = null
+    // Sessions are oldest first, so a later equal weight doesn't move the date.
+    for (const set of sets) {
+      if (set.reps >= reps && (!best || set.weightKg > best.weightKg)) {
+        best = { reps, weightKg: set.weightKg, date: set.date }
+      }
+    }
+    return best!
+  })
+
+  // Weights never rise with reps; drop a row when the next one lifts the same for more.
+  return maxes.filter((row, i) => maxes[i + 1]?.weightKg !== row.weightKg)
+}
