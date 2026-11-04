@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/AmriArshad/Liftboard/compare/v0.2.0...v0.3.0) (2026-11-04)
+
+
+### Features
+
+* make records and sessions readable on phones ([#37](https://github.com/AmriArshad/Liftboard/issues/37)) ([95da5c2](https://github.com/AmriArshad/Liftboard/commit/95da5c2b56f99e93b943438d469b3da550cc34c5))
+* **upload:** show how to export a CSV from Hevy ([#35](https://github.com/AmriArshad/Liftboard/issues/35)) ([3ae1920](https://github.com/AmriArshad/Liftboard/commit/3ae19204aa8241455e4b918df57153cf312e5827))
+
 ## [0.2.0](https://github.com/AmriArshad/Liftboard/compare/v0.1.1...v0.2.0) (2026-11-04)
 
 
