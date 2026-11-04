@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0](https://github.com/AmriArshad/Liftboard/compare/v0.1.1...v0.2.0) (2026-11-04)
+
+
+### Features
+
+* **brand:** switch to a self-hosted Geist typeface ([#30](https://github.com/AmriArshad/Liftboard/issues/30)) ([0c6f4bf](https://github.com/AmriArshad/Liftboard/commit/0c6f4bf1a6cb4f428398d5a0b44ea57eaffa306b))
+* **exercises:** add bests, rep maxes and every set to the exercise page ([#34](https://github.com/AmriArshad/Liftboard/issues/34)) ([cb29210](https://github.com/AmriArshad/Liftboard/commit/cb29210e3697bbf2c03deca63a5f3c12cce81c65))
+* **header:** align the header with the page and refine the nav ([#31](https://github.com/AmriArshad/Liftboard/issues/31)) ([840ce63](https://github.com/AmriArshad/Liftboard/commit/840ce63877ae3e1b55d21a7181e632616cd0f318))
+* **overview:** turn the overview into a training dashboard ([#28](https://github.com/AmriArshad/Liftboard/issues/28)) ([5236258](https://github.com/AmriArshad/Liftboard/commit/52362582f1e90539d089782460e4714b48fb8010))
+* **workouts:** add a workout list and a page for each workout ([#33](https://github.com/AmriArshad/Liftboard/issues/33)) ([15aae31](https://github.com/AmriArshad/Liftboard/commit/15aae31801183e9dd696256bef7b8e50403fcf82))
+
+
+### Fixes
+
+* correct the issues found in QA ([#32](https://github.com/AmriArshad/Liftboard/issues/32)) ([26c3679](https://github.com/AmriArshad/Liftboard/commit/26c3679223babfbf861b74a2d62131d2c16d3163))
+
 ## [0.1.1](https://github.com/AmriArshad/Liftboard/compare/v0.1.0...v0.1.1) (2026-11-04)
 
 
