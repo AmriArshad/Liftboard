@@ -46,6 +46,8 @@ export interface ChartTheme {
   highlight: string
   /** Card background, for gaps drawn in the colour of what's behind the chart. */
   surface: string
+  /** The page's font stack, so chart text matches the rest of the page. */
+  font: string
   /** `count` shades stepping from `series` to `seriesSoft`, for stacked series. */
   shades: (count: number) => string[]
 }
@@ -66,6 +68,7 @@ export function readTheme(element: Element): ChartTheme {
     seriesSoft,
     highlight: token('--highlight'),
     surface: token('--surface'),
+    font: style.fontFamily,
     shades: (count) =>
       Array.from({ length: count }, (_, i) =>
         mix(series, seriesSoft, count > 1 ? i / (count - 1) : 0),

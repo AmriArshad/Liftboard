@@ -31,7 +31,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,csv,webmanifest}'],
+        // Of the font files, only the Latin one is precached; other alphabets load on demand.
+        globPatterns: [
+          '**/*.{js,css,html,svg,png,csv,webmanifest}',
+          '**/geist-latin-wght-normal-*.woff2',
+        ],
       },
     }),
   ],

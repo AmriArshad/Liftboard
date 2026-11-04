@@ -43,7 +43,14 @@
   $effect(() => {
     if (!chart) return
     const target = chart
-    const render = () => target.setOption(option(readTheme(element)), { notMerge: true })
+    const render = () => {
+      const theme = readTheme(element)
+      // Axis labels and tooltips use the page font rather than ECharts's generic sans-serif.
+      target.setOption(
+        { textStyle: { fontFamily: theme.font }, ...option(theme) },
+        { notMerge: true },
+      )
+    }
     render()
 
     const scheme = matchMedia('(prefers-color-scheme: dark)')
