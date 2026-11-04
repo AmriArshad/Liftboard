@@ -42,7 +42,12 @@ export interface ChartTheme {
   muted: string
   faint: string
   series: string
+  seriesSoft: string
   highlight: string
+  /** Card background, for gaps drawn in the colour of what's behind the chart. */
+  surface: string
+  /** `count` shades stepping from `series` to `seriesSoft`, for stacked series. */
+  shades: (count: number) => string[]
 }
 
 // ECharts can't read CSS variables or color-mix(), so colours are resolved to plain values here.
@@ -50,18 +55,39 @@ export function readTheme(element: Element): ChartTheme {
   const style = getComputedStyle(element)
   const token = (name: string) => style.getPropertyValue(name).trim()
   const text = token('--text')
+  const series = token('--series')
+  const seriesSoft = token('--series-soft')
   return {
     background: token('--bg'),
     text,
     muted: withAlpha(text, 0.6),
     faint: withAlpha(text, 0.08),
-    series: token('--series'),
+    series,
+    seriesSoft,
     highlight: token('--highlight'),
+    surface: token('--surface'),
+    shades: (count) =>
+      Array.from({ length: count }, (_, i) =>
+        mix(series, seriesSoft, count > 1 ? i / (count - 1) : 0),
+      ),
   }
 }
 
-/** "#rrggbb" plus an alpha → "rgba(...)". The CSS tokens are all six-digit hex. */
-function withAlpha(hex: string, alpha: number): string {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+/** The CSS tokens are all six-digit hex. */
+function channels(hex: string): [number, number, number] {
+  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number]
+}
+
+/** "#rrggbb" plus an alpha → "rgba(...)". */
+export function withAlpha(hex: string, alpha: number): string {
+  const [r, g, b] = channels(hex)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+/** The colour `amount` of the way from `from` to `to` (0 = from, 1 = to). */
+function mix(from: string, to: string, amount: number): string {
+  const a = channels(from)
+  const b = channels(to)
+  const [r, g, bl] = a.map((v, i) => Math.round(v + (b[i]! - v) * amount))
+  return `rgb(${r}, ${g}, ${bl})`
 }

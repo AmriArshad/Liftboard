@@ -5,10 +5,13 @@ import {
   change,
   liftTrends,
   periodRange,
-  rollingAverage,
   split,
   streaks,
+  insights,
   totals,
+  weeklyVolumeBySplit,
+  type LiftTrend,
+  type Totals,
 } from '../../src/lib/metrics/summary'
 import type { Dataset, Workout, WorkoutSet } from '../../src/lib/parse/types'
 
@@ -45,7 +48,7 @@ const dataset = (workouts: Workout[]): Dataset => ({ workouts, sourceUnit: 'kg' 
 describe('periodRange', () => {
   const data = dataset([workout(0), workout(40)])
 
-  it('ends at midnight after the latest workout and looks back a whole number of weeks', () => {
+  it('covers whole calendar weeks ending with the latest workout', () => {
     const range = periodRange(data, '4w')
     expect(range.end).toEqual(new Date(2026, 9, 12))
     expect(range.start).toEqual(new Date(2026, 8, 14))
@@ -54,7 +57,8 @@ describe('periodRange', () => {
 
   it('covers the whole history for "all", with nothing to compare against', () => {
     const range = periodRange(data, 'all')
-    expect(range.start).toEqual(new Date(2026, 8, 1))
+    // From the Monday of the first workout's week.
+    expect(range.start).toEqual(new Date(2026, 7, 31))
     expect(range.previous).toBeNull()
   })
 })
@@ -162,12 +166,6 @@ describe('byWeekday', () => {
   })
 })
 
-describe('rollingAverage', () => {
-  it('averages the trailing window', () => {
-    expect(rollingAverage([4, 8, 12, 16, 20], 4)).toEqual([4, 6, 8, 10, 14])
-  })
-})
-
 describe('liftTrends selection', () => {
   it('always keeps stalled lifts, even when better-trained lifts fill the limit', () => {
     const lift = (name: string, sessions: number) =>
@@ -182,5 +180,59 @@ describe('liftTrends selection', () => {
     )
 
     expect(names).toEqual(['Bench', 'Press'])
+  })
+})
+
+describe('weeklyVolumeBySplit', () => {
+  it('stacks each week by workout name, with unlisted names in Other', () => {
+    // 31 Aug 2026 is a Monday; days 0 and 1 share a week, day 7 is the next.
+    const weeks = [{ start: new Date(2026, 7, 31) }, { start: new Date(2026, 8, 7) }] as Week[]
+    const rows = weeklyVolumeBySplit(
+      [
+        workout(0, [set('Bench', 100, 5)], 'Push'),
+        workout(1, [set('Row', 50, 10)], 'Pull'),
+        workout(7, [set('Bench', 100, 2), set('Pull Up', null, 10)], 'Push'),
+      ],
+      weeks,
+      ['Push', 'Other'],
+    )
+
+    expect(rows).toEqual([
+      [500, 200],
+      [500, 0],
+    ])
+  })
+})
+
+describe('insights', () => {
+  const trend = (exercise: string, status: LiftTrend['status'], changePct: number | null) =>
+    ({ exercise, status, changePct, sessions: 6, e1rmKg: 100, points: [] }) as LiftTrend
+  const totalsOf = (perWeek: number) => ({ perWeek, workouts: 10 }) as Totals
+
+  it('names the leaders, the stalled and the slipping, and how often you trained', () => {
+    const result = insights(
+      [
+        trend('Squat (Barbell)', 'progressing', 0.07),
+        trend('Deadlift (Barbell)', 'progressing', 0.09),
+        trend('Curl', 'progressing', 0.03),
+        trend('Overhead Press (Barbell)', 'stalled', 0),
+        trend('Bench Press (Barbell)', 'regressing', -0.04),
+      ],
+      totalsOf(2.8),
+      totalsOf(2.5),
+    )
+
+    expect(result).toEqual([
+      'Deadlift (+9%) and Squat (+7%) are leading your progress.',
+      'Overhead Press has stalled.',
+      'Bench Press is down 4%.',
+      'You trained 2.8 times a week, up from 2.5.',
+    ])
+  })
+
+  it('says so when nothing is moving up, and skips the comparison without one', () => {
+    expect(insights([trend('Squat', 'flat', 0.01)], totalsOf(3), null)).toEqual([
+      'No lift is clearly moving up this period.',
+    ])
   })
 })

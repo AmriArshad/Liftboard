@@ -12,7 +12,8 @@
   }: {
     /** Read by screen readers; the options say what this is visually. */
     legend: string
-    options: { value: T; label: string }[]
+    /** `name` is read by screen readers when the visible label is abbreviated ("12W"). */
+    options: { value: T; label: string; name?: string }[]
     value: T
     onchange: (value: T) => void
   } = $props()
@@ -30,6 +31,7 @@
         {name}
         value={option.value}
         checked={value === option.value}
+        aria-label={option.name}
         onchange={() => onchange(option.value)}
       />
       {option.label}

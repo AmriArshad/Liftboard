@@ -1,15 +1,21 @@
 :root {
-  --bg: #ffffff;
+  /* A warm off-white page with cards one step lighter, in the calm style of the dashboard. */
+  --bg: #f3f3ee;
+  --surface: #fbfbf8;
+  --border: #e3e4dc;
   --text: #0e0f12;
   --accent: #d4ff3f;
-  --error: #c4262e;
-  /* Charts are neutral by default. The highlight is for the one series that matters most
-     (lime on dark; lime is too faint on white, so near-black there). */
-  --series: #52525b;
-  --highlight: #0e0f12;
   --on-accent: #0e0f12;
-  /* Tiles sit one step off the page; good/bad/warn mark whether a number is moving the right way. */
-  --surface: #f6f6f7;
+  --error: #c4262e;
+  /* Charts use muted sage-olive, which sits well beside the lime accent. The highlight is
+     for the one series that matters most (lime on dark; on a light page lime is too faint
+     for a line, so near-black there). */
+  --series: #6b7560;
+  --series-soft: #dbe3cd;
+  --highlight: #0e0f12;
+  /* The one card that leads the page: a pale wash of the brand lime. */
+  --hero: #e8f0c4;
+  /* Whether a number is moving the right way. */
   --good: #2f7a12;
   --bad: #c4262e;
   --warn: #a35a00;
@@ -30,11 +36,14 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0e0f12;
+    --surface: #15161a;
+    --border: #25272c;
     --text: #f4f4f5;
     --error: #ff7a7a;
-    --series: #a1a1aa;
+    --series: #8f9a7e;
+    --series-soft: #2c3225;
     --highlight: #d4ff3f;
-    --surface: #17181c;
+    --hero: #1e2410;
     --good: #a6e34a;
     --bad: #ff7a7a;
     --warn: #f5b14c;

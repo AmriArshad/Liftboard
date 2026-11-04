@@ -3,7 +3,7 @@
 
 import type { Dataset, Workout } from '../parse/types'
 import { exercises, sessions } from './exercise'
-import { isWorkingSet, overview, type Week } from './overview'
+import { isWorkingSet, overview, weekStart, type Week } from './overview'
 import type { PersonalRecord } from './progress'
 
 export type Period = '4w' | '12w' | '26w' | '52w' | 'all'
@@ -28,7 +28,9 @@ export interface Range {
 
 /**
  * The period ends at the latest workout, not today, so an export from months ago still shows
- * its last stretch of training rather than an empty window.
+ * its last stretch of training rather than an empty window. It covers whole calendar weeks
+ * (Monday to Sunday), counting the latest workout's week as the last, so every weekly bar
+ * and calendar column is a full week.
  */
 export function periodRange(dataset: Dataset, period: Period): Range {
   const first = dataset.workouts[0]?.start ?? new Date()
@@ -36,15 +38,12 @@ export function periodRange(dataset: Dataset, period: Period): Range {
   const end = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1)
 
   if (period === 'all') {
-    return {
-      start: new Date(first.getFullYear(), first.getMonth(), first.getDate()),
-      end,
-      previous: null,
-    }
+    return { start: weekStart(first), end, previous: null }
   }
 
   const days = PERIOD_WEEKS[period] * 7
-  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - days)
+  const lastWeek = weekStart(last)
+  const start = new Date(lastWeek.getFullYear(), lastWeek.getMonth(), lastWeek.getDate() - days + 7)
   const previousStart = new Date(start.getFullYear(), start.getMonth(), start.getDate() - days)
   return { start, end, previous: { start: previousStart, end: start } }
 }
@@ -89,7 +88,8 @@ export function totals(
     }
   }
 
-  const weeks = Math.max(1, Math.round((end.getTime() - start.getTime()) / (7 * DAY)))
+  // The latest week is usually partway through; it still counts as a week of the period.
+  const weeks = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (7 * DAY)))
   return {
     workouts: workouts.length,
     perWeek: workouts.length / weeks,
@@ -226,10 +226,78 @@ export function weeksInRange(dataset: Dataset, start: Date, end: Date): Week[] {
   )
 }
 
-/** Trailing average of the last `size` values at each point (fewer at the very start). */
-export function rollingAverage(values: number[], size = 4): number[] {
-  return values.map((_, i) => {
-    const window = values.slice(Math.max(0, i - size + 1), i + 1)
-    return window.reduce((a, b) => a + b, 0) / window.length
-  })
+/**
+ * Each week's volume divided by workout name, one array per entry of `titles` (aligned with
+ * `weeks`), for a stacked chart. Workouts whose name isn't listed count towards "Other" when
+ * `titles` includes it.
+ */
+export function weeklyVolumeBySplit(
+  workouts: Workout[],
+  weeks: Week[],
+  titles: string[],
+): number[][] {
+  const index = new Map(weeks.map((w, i) => [w.start.getTime(), i]))
+  const rows = titles.map(() => weeks.map(() => 0))
+  const other = titles.indexOf('Other')
+
+  for (const workout of workouts) {
+    const week = index.get(weekStart(workout.start).getTime())
+    const row = titles.indexOf(workout.title || 'Untitled')
+    const target = row === -1 ? other : row
+    if (week === undefined || target === -1) continue
+    for (const set of workout.sets) {
+      if (isWorkingSet(set) && set.weightKg !== null && set.reps !== null) {
+        rows[target]![week]! += set.weightKg * set.reps
+      }
+    }
+  }
+  return rows
+}
+
+/** "Deadlift (Barbell)" → "Deadlift": equipment in brackets reads badly mid-sentence. */
+export function shortName(exercise: string): string {
+  return exercise.replace(/\s*\([^)]*\)\s*$/, '') || exercise
+}
+
+const list = (items: string[]) =>
+  items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+
+/**
+ * Two or three plain sentences on what's working and what isn't, from the numbers on the page.
+ * Facts only: the reader knows their program better than this does.
+ */
+export function insights(lifts: LiftTrend[], now: Totals, before: Totals | null): string[] {
+  const sentences: string[] = []
+  const pct = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`
+
+  const leaders = lifts
+    .filter((l) => l.status === 'progressing' && l.changePct !== null)
+    .sort((a, b) => b.changePct! - a.changePct!)
+    .slice(0, 2)
+  if (leaders.length > 0) {
+    const names = leaders.map((l) => `${shortName(l.exercise)} (${pct(l.changePct!)})`)
+    sentences.push(`${list(names)} ${leaders.length > 1 ? 'are' : 'is'} leading your progress.`)
+  } else if (lifts.length > 0) {
+    sentences.push('No lift is clearly moving up this period.')
+  }
+
+  const stalled = lifts.filter((l) => l.status === 'stalled').map((l) => shortName(l.exercise))
+  if (stalled.length > 0) {
+    sentences.push(`${list(stalled)} ${stalled.length > 1 ? 'have' : 'has'} stalled.`)
+  }
+  const down = lifts.filter((l) => l.status === 'regressing')
+  for (const lift of down.slice(0, 2)) {
+    sentences.push(`${shortName(lift.exercise)} is down ${pct(lift.changePct!).slice(1)}.`)
+  }
+
+  if (before && before.workouts > 0) {
+    const oneDecimal = (n: number) => Math.round(n * 10) / 10
+    const [a, b] = [oneDecimal(now.perWeek), oneDecimal(before.perWeek)]
+    sentences.push(
+      a === b
+        ? `You trained a steady ${a} times a week.`
+        : `You trained ${a} times a week, ${a > b ? 'up' : 'down'} from ${b}.`,
+    )
+  }
+  return sentences
 }
