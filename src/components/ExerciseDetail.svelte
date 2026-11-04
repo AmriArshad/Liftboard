@@ -17,7 +17,7 @@
   const history = $derived(sessions(data, exercise.name))
   const newestFirst = $derived(history.toReversed())
 
-  const weight = (kg: number) => `${formatWeight(fromKg(kg, unit))} ${unit}`
+  const weight = (kg: number) => `${formatWeight(fromKg(kg, unit), unit)} ${unit}`
   // e1RM is an estimate, so one decimal is plenty.
   const estimate = (kg: number) => `${formatDecimal(fromKg(kg, unit))} ${unit}`
   const distance = (km: number) => `${formatDecimal(fromKm(km, unit))} ${distanceUnit(unit)}`
@@ -46,13 +46,20 @@
       return {
         // Every set above 12 reps leaves e1RM empty; show only what has data.
         series: series.filter((s) => s.points.length > 0),
-        format: (v: number) => `${formatWeight(v)} ${unit}`,
+        format: (v: number) => `${formatWeight(v, unit)} ${unit}`,
       }
     }
     if (exercise.kind === 'bodyweight') {
       return {
         series: [{ name: 'Best reps', points: points((s) => s.bestReps) }],
         format: (v: number) => `${formatInteger(v)} reps`,
+      }
+    }
+    if (exercise.kind === 'timed') {
+      return {
+        series: [{ name: 'Longest', points: points((s) => s.longestSeconds) }],
+        format: formatDuration,
+        axisFormat: formatDuration,
       }
     }
     return {
@@ -69,11 +76,15 @@
 
 <h1>{exercise.name}</h1>
 
-<ProgressLine
-  series={chart.series}
-  format={chart.format}
-  label="{exercise.name} over {history.length} sessions"
-/>
+<!-- A line needs two points; with one session the table below says it all. -->
+{#if chart.series.some((s) => s.points.length > 1)}
+  <ProgressLine
+    series={chart.series}
+    format={chart.format}
+    axisFormat={chart.axisFormat}
+    label="{exercise.name} over {history.length} sessions"
+  />
+{/if}
 
 <!-- Wide tables scroll sideways inside this box rather than widening the page on phones. -->
 <div class="table">
@@ -87,6 +98,9 @@
           <th>Sets</th>
         {:else if exercise.kind === 'bodyweight'}
           <th>Best</th>
+          <th>Sets</th>
+        {:else if exercise.kind === 'timed'}
+          <th>Longest</th>
           <th>Sets</th>
         {:else}
           <th>Distance</th>
@@ -110,6 +124,9 @@
             <td>{session.sets.length}</td>
           {:else if exercise.kind === 'bodyweight'}
             <td>{session.bestReps === null ? '' : `${session.bestReps} reps`}</td>
+            <td>{session.sets.length}</td>
+          {:else if exercise.kind === 'timed'}
+            <td>{session.longestSeconds === null ? '' : formatDuration(session.longestSeconds)}</td>
             <td>{session.sets.length}</td>
           {:else}
             <td>{session.distanceKm === null ? '' : distance(session.distanceKm)}</td>

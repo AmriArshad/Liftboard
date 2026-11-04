@@ -20,7 +20,7 @@
 
   function setText(weightKg: number | null, reps: number | null): string {
     if (weightKg === null) return reps === null ? '' : `${reps} reps`
-    const weight = `${formatWeight(fromKg(weightKg, unit))} ${unit}`
+    const weight = `${formatWeight(fromKg(weightKg, unit), unit)} ${unit}`
     return reps === null ? weight : `${weight} × ${reps}`
   }
 

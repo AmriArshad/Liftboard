@@ -21,7 +21,18 @@
     { label: 'Progress', to: { view: 'progress' } },
   ]
 
+  // Clearing can't be undone, so the first click only asks; a second click within a few
+  // seconds clears. Quieter than a dialog, and just as hard to do by accident.
+  let confirming = $state(false)
+  let timer: ReturnType<typeof setTimeout> | undefined
+
   async function clear() {
+    if (!confirming) {
+      confirming = true
+      timer = setTimeout(() => (confirming = false), 4000)
+      return
+    }
+    clearTimeout(timer)
     await dataset.clear()
     // Back to the upload screen, starting from the overview next time.
     location.hash = href({ view: 'overview' })
@@ -64,7 +75,9 @@
     value={unit}
     onchange={unitPreference.set}
   />
-  <button type="button" onclick={clear}>Clear my data</button>
+  <button type="button" class:confirming onclick={clear} onblur={() => (confirming = false)}>
+    {confirming ? 'Click again to clear' : 'Clear my data'}
+  </button>
 </footer>
 
 <style>
@@ -97,9 +110,14 @@
     cursor: pointer;
   }
 
-  footer button:hover {
+  footer button:hover,
+  footer button.confirming {
     opacity: 1;
     text-decoration: underline;
+  }
+
+  footer button.confirming {
+    color: var(--error);
   }
 
   .home {

@@ -40,6 +40,20 @@ describe('e1rm', () => {
   })
 })
 
+describe('timed exercises', () => {
+  it('measures a hold by time, with the longest set per session', () => {
+    const data = dataset([
+      workout(new Date(2026, 10, 2), [
+        set('Plank', { durationSeconds: 60 }),
+        set('Plank', { durationSeconds: 90 }),
+      ]),
+    ])
+
+    expect(exercises(data)[0]?.kind).toBe('timed')
+    expect(sessions(data, 'Plank')[0]).toMatchObject({ durationSeconds: 150, longestSeconds: 90 })
+  })
+})
+
 describe('exercises', () => {
   const data = dataset([
     workout(new Date(2026, 10, 2), [

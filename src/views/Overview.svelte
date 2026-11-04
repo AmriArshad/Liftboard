@@ -18,6 +18,7 @@
     formatInteger,
     formatWeight,
   } from '../lib/format'
+  import { exercises } from '../lib/metrics/exercise'
   import { overview } from '../lib/metrics/overview'
   import { personalRecords, stalledLifts } from '../lib/metrics/progress'
   import {
@@ -83,8 +84,18 @@
   const vs = $derived(` vs previous ${PERIOD_NAMES[period]}`)
 
   const weeks = $derived(weeksInRange(data, range.start, range.end))
-  const lifts = $derived(liftTrends(data, range.start, range.end, stalled))
-  const sentences = $derived(insights(lifts, now, compare))
+  // Every exercise name, so short names keep their brackets where two would look the same.
+  const names = $derived(exercises(data).map((e) => e.name))
+  const short = (exercise: string) => shortName(exercise, names)
+
+  // The card shows a few lifts until asked for the rest; the sentences look at all of them.
+  const TILES = 8
+  let showAllLifts = $state(false)
+  const allLifts = $derived(liftTrends(data, range.start, range.end, stalled, Infinity))
+  const lifts = $derived(
+    showAllLifts ? allLifts : liftTrends(data, range.start, range.end, stalled, TILES),
+  )
+  const sentences = $derived(insights(allLifts, now, compare, names))
   const shares = $derived(split(workouts, 3))
   const stacked = $derived(
     weeklyVolumeBySplit(
@@ -105,7 +116,7 @@
     return delta > 0.1 ? 'Rising' : delta < -0.1 ? 'Slipping' : 'Steady'
   })
 
-  const weight = (kg: number) => `${formatWeight(fromKg(kg, unit))} ${unit}`
+  const weight = (kg: number) => `${formatWeight(fromKg(kg, unit), unit)} ${unit}`
   const pct = (n: number) => `${Math.abs(Math.round(n * 100))}%`
   // e1RM is an estimate: one decimal is plenty.
   const estimate = (kg: number) => `${formatDecimal(fromKg(kg, unit))} ${unit}`
@@ -189,7 +200,7 @@
           {#each lifts as lift (lift.exercise)}
             <li class="tile">
               <a href={exerciseLink(lift.exercise)} title={lift.exercise}>
-                {shortName(lift.exercise)}
+                {short(lift.exercise)}
               </a>
               <p class="tile-value">{estimate(lift.e1rmKg)}</p>
               <div class="tile-foot">
@@ -207,6 +218,11 @@
             </li>
           {/each}
         </ul>
+        {#if allLifts.length > TILES}
+          <button type="button" class="more" onclick={() => (showAllLifts = !showAllLifts)}>
+            {showAllLifts ? 'Show fewer' : `Show all ${allLifts.length}`}
+          </button>
+        {/if}
       {/if}
     </section>
 
@@ -312,7 +328,7 @@
         <ul class="records">
           {#each recent as record (`${record.date.getTime()} ${record.exercise}`)}
             <li>
-              <a href={exerciseLink(record.exercise)}>{shortName(record.exercise)}</a>
+              <a href={exerciseLink(record.exercise)}>{short(record.exercise)}</a>
               <span>
                 {record.weightKg === null
                   ? `${record.reps} reps`
@@ -642,8 +658,19 @@
   .more {
     display: inline-block;
     margin-top: 12px;
+    padding: 0;
+    border: 0;
+    font: inherit;
     font-size: 0.875rem;
+    color: inherit;
+    background: none;
     opacity: 0.6;
+    cursor: pointer;
+  }
+
+  button.more:hover {
+    opacity: 1;
+    text-decoration: underline;
   }
 
   @media (max-width: 899px) {

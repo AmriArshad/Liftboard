@@ -9,7 +9,9 @@ test('keeps the data across reloads until it is cleared', async ({ page }) => {
   await page.reload()
   await expect(total).toBeVisible()
 
+  // The first click only asks; the second clears.
   await page.getByRole('button', { name: 'Clear my data' }).click()
+  await page.getByRole('button', { name: 'Click again to clear' }).click()
   await expect(page.getByRole('button', { name: 'Try the demo' })).toBeVisible()
 
   await page.reload()
