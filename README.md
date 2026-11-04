@@ -17,9 +17,9 @@ Explore your Hevy workout history in the browser. Your CSV never leaves your dev
 1. In Hevy, go to **Settings → Export & Import Data → Export Workouts**.
 2. Drop the CSV on the page, or try the demo.
 
-You get an overview (workouts per week, weekly volume and sets), an exercise explorer (e1RM and
-top set over time, every session) and your personal records and stalled lifts. kg or lb, light
-or dark, phone or desktop.
+You get an overview (workouts per week, weekly volume and sets), every workout set by set (with
+RPE, notes and supersets), an exercise explorer (e1RM and top set over time, every session) and
+your personal records and stalled lifts. kg or lb, light or dark, phone or desktop.
 
 ## Privacy
 

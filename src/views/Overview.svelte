@@ -20,6 +20,7 @@
   } from '../lib/format'
   import { exercises } from '../lib/metrics/exercise'
   import { overview } from '../lib/metrics/overview'
+  import { workoutIds } from '../lib/metrics/workout'
   import { personalRecords, stalledLifts } from '../lib/metrics/progress'
   import {
     byWeekday,
@@ -130,6 +131,9 @@
 
   const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
   const exerciseLink = (exercise: string) => href({ view: 'exercises', exercise })
+  const ids = $derived(workoutIds(data))
+  const workoutLink = (date: Date) =>
+    href({ view: 'workouts', workout: ids.get(date.getTime()) ?? null })
 </script>
 
 <main>
@@ -334,7 +338,7 @@
                   ? `${record.reps} reps`
                   : `${weight(record.weightKg)}${record.reps === null ? '' : ` × ${record.reps}`}`}
               </span>
-              <span class="muted">{formatDate(record.date)}</span>
+              <a class="muted" href={workoutLink(record.date)}>{formatDate(record.date)}</a>
             </li>
           {/each}
         </ul>
@@ -648,7 +652,7 @@
     padding-top: 0;
   }
 
-  .records a {
+  .records a:first-child {
     overflow: hidden;
     font-weight: 500;
     text-overflow: ellipsis;

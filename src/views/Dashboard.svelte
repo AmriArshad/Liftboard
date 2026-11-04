@@ -9,6 +9,7 @@
   import Exercises from './Exercises.svelte'
   import Overview from './Overview.svelte'
   import Progress from './Progress.svelte'
+  import Workouts from './Workouts.svelte'
 
   let { data }: { data: Dataset } = $props()
 
@@ -17,6 +18,7 @@
 
   const links: { label: string; to: Route }[] = [
     { label: 'Overview', to: { view: 'overview' } },
+    { label: 'Workouts', to: { view: 'workouts', workout: null } },
     { label: 'Exercises', to: { view: 'exercises', exercise: null } },
     { label: 'Progress', to: { view: 'progress' } },
   ]
@@ -57,7 +59,9 @@
   </nav>
 </header>
 
-{#if route.current.view === 'exercises'}
+{#if route.current.view === 'workouts'}
+  <Workouts {data} {unit} selected={route.current.workout} />
+{:else if route.current.view === 'exercises'}
   <Exercises {data} {unit} selected={route.current.exercise} />
 {:else if route.current.view === 'progress'}
   <Progress {data} {unit} />
@@ -189,8 +193,24 @@
       display: block;
     }
 
+    /* Four links beside the icon only just fit a phone: smaller text, tighter pills, and the
+       pill alone marks the current page. Very narrow screens scroll the links sideways. */
+    header {
+      gap: 8px;
+    }
+
+    nav {
+      overflow-x: auto;
+    }
+
     nav a {
-      padding: 6px 10px;
+      padding: 6px 6px;
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    nav a[aria-current='page']::before {
+      display: none;
     }
   }
 </style>
