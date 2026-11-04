@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/AmriArshad/Liftboard/compare/v0.1.0...v0.1.1) (2026-11-04)
+
+
+### Docs
+
+* license the project under MIT ([#27](https://github.com/AmriArshad/Liftboard/issues/27)) ([a4db445](https://github.com/AmriArshad/Liftboard/commit/a4db445e7e054a907716813d2bcdbf428805e3a7))
+
+
+### CI/CD
+
+* tag releases as vX.Y.Z without the package name ([#25](https://github.com/AmriArshad/Liftboard/issues/25)) ([ff0264b](https://github.com/AmriArshad/Liftboard/commit/ff0264b3817b763f324d699bfa4ba8a97ed2da0e))
+
 ## 0.1.0 (2026-11-03)
 
 
