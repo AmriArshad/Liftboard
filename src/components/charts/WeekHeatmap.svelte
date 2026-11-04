@@ -39,7 +39,7 @@
         dimension: 2,
         pieces: [
           { value: 0, color: theme.faint },
-          { gte: 1, color: theme.series },
+          { gte: 1, color: theme.highlight },
         ],
       },
       tooltip: {

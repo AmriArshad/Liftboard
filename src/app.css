@@ -8,6 +8,11 @@
   --series: #52525b;
   --highlight: #0e0f12;
   --on-accent: #0e0f12;
+  /* Tiles sit one step off the page; good/bad/warn mark whether a number is moving the right way. */
+  --surface: #f6f6f7;
+  --good: #2f7a12;
+  --bad: #c4262e;
+  --warn: #a35a00;
 
   font-family:
     Inter,
@@ -29,6 +34,10 @@
     --error: #ff7a7a;
     --series: #a1a1aa;
     --highlight: #d4ff3f;
+    --surface: #17181c;
+    --good: #a6e34a;
+    --bad: #ff7a7a;
+    --warn: #f5b14c;
   }
 }
 

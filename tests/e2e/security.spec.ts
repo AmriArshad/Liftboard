@@ -50,8 +50,11 @@ test('every screen works under the Content-Security-Policy', async ({ page }) =>
   await expect(page.getByRole('heading', { level: 1, name: '62 workouts' })).toBeVisible()
   await expect(page.getByRole('img', { name: /workouts over/ }).locator('svg')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Exercises' }).click()
-  await page.getByRole('link', { name: 'Bench Press (Barbell)' }).click()
+  await page.getByRole('navigation').getByRole('link', { name: 'Exercises' }).click()
+  await page
+    .getByRole('list', { name: 'Exercises' })
+    .getByRole('link', { name: 'Bench Press (Barbell)' })
+    .click()
   await expect(page.getByRole('img', { name: /Bench Press/ }).locator('svg')).toBeVisible()
 
   await page.getByRole('link', { name: 'Progress' }).click()

@@ -10,12 +10,15 @@
     value,
     format,
     label,
+    average,
   }: {
     weeks: Week[]
     value: (week: Week) => number
     /** Full value for the tooltip, e.g. "12,300 kg". */
     format: (value: number) => string
     label: string
+    /** Optional trend line drawn over the bars, one value per week (e.g. a rolling average). */
+    average?: { name: string; values: number[] }
   } = $props()
 
   function option(theme: ChartTheme) {
@@ -38,10 +41,11 @@
         trigger: 'axis' as const,
         axisPointer: { type: 'shadow' as const, shadowStyle: { color: theme.faint } },
         formatter: (params: unknown) => {
-          const [bar] = params as { dataIndex: number; value: number }[]
-          return bar
-            ? `Week of ${formatDate(weeks[bar.dataIndex]!.start)}: ${format(bar.value)}`
-            : ''
+          const [bar, line] = params as { dataIndex: number; value: number }[]
+          if (!bar) return ''
+          const rows = [`Week of ${formatDate(weeks[bar.dataIndex]!.start)}: ${format(bar.value)}`]
+          if (line && average) rows.push(`${average.name}: ${format(line.value)}`)
+          return rows.join('<br>')
         },
       },
       series: [
@@ -51,6 +55,19 @@
           itemStyle: { color: theme.series, borderRadius: [3, 3, 0, 0] },
           barCategoryGap: '30%',
         },
+        ...(average
+          ? [
+              {
+                type: 'line' as const,
+                name: average.name,
+                data: average.values.map(Math.round),
+                symbol: 'none',
+                smooth: true,
+                lineStyle: { color: theme.highlight, width: 2.5 },
+                itemStyle: { color: theme.highlight },
+              },
+            ]
+          : []),
       ],
     }
   }
