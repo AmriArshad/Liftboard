@@ -1,7 +1,7 @@
 <!-- Everything shown once a dataset is loaded: the header with navigation, then the current view. -->
 <script lang="ts">
   import Logo from '../components/Logo.svelte'
-  import UnitToggle from '../components/UnitToggle.svelte'
+  import Segmented from '../components/Segmented.svelte'
   import type { Dataset } from '../lib/parse/types'
   import { dataset } from '../lib/store/dataset.svelte'
   import { href, route, type Route } from '../lib/store/route.svelte'
@@ -55,7 +55,15 @@
 {/if}
 
 <footer>
-  <UnitToggle {unit} />
+  <Segmented
+    legend="Units"
+    options={[
+      { value: 'kg', label: 'kg' },
+      { value: 'lb', label: 'lb' },
+    ]}
+    value={unit}
+    onchange={unitPreference.set}
+  />
   <button type="button" onclick={clear}>Clear my data</button>
 </footer>
 

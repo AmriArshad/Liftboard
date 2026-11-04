@@ -54,8 +54,8 @@
         {
           type: 'heatmap' as const,
           data: cells,
-          // A border in the page colour draws the gaps between cells.
-          itemStyle: { borderColor: theme.background, borderWidth: 3, borderRadius: 4 },
+          // A border in the card colour draws the gaps between cells.
+          itemStyle: { borderColor: theme.surface, borderWidth: 3, borderRadius: 4 },
           emphasis: { itemStyle: { borderColor: theme.text, borderWidth: 1 } },
         },
       ],

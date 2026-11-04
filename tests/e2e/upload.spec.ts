@@ -10,12 +10,12 @@ test.beforeEach(async ({ page }) => {
 
 test('loads the demo', async ({ page }) => {
   await page.getByRole('button', { name: 'Try the demo' }).click()
-  await expect(page.getByText('62 workouts')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: '62 workouts' })).toBeVisible()
 })
 
 test('loads a chosen file', async ({ page }) => {
   await page.locator('input[type=file]').setInputFiles(fixture('kg-export.csv'))
-  await expect(page.getByText('2 workouts')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: '2 workouts' })).toBeVisible()
 })
 
 test('loads a file dropped anywhere on the page', async ({ page }) => {
@@ -28,7 +28,7 @@ test('loads a file dropped anywhere on the page', async ({ page }) => {
 
   await page.dispatchEvent('main', 'dragover', { dataTransfer })
   await page.dispatchEvent('main', 'drop', { dataTransfer })
-  await expect(page.getByText('1 workout', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: '1 workout' })).toBeVisible()
 })
 
 test('rejects a file that is not a Hevy export', async ({ page }) => {
