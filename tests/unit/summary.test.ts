@@ -8,6 +8,7 @@ import {
   split,
   streaks,
   insights,
+  shortName,
   totals,
   weeklyVolumeBySplit,
   type LiftTrend,
@@ -53,6 +54,12 @@ describe('periodRange', () => {
     expect(range.end).toEqual(new Date(2026, 9, 12))
     expect(range.start).toEqual(new Date(2026, 8, 14))
     expect(range.previous).toEqual({ start: new Date(2026, 7, 17), end: new Date(2026, 8, 14) })
+  })
+
+  it('starts at the first workout when the period is longer than the history', () => {
+    const range = periodRange(data, '12w')
+    expect(range.start).toEqual(new Date(2026, 7, 31))
+    expect(range.previous).toBeNull()
   })
 
   it('covers the whole history for "all", with nothing to compare against', () => {
@@ -142,20 +149,33 @@ describe('liftTrends', () => {
 })
 
 describe('split', () => {
-  it('shares workouts by name, folding the long tail into Other', () => {
-    const names = ['Push', 'Push', 'Pull', 'Legs', 'Arms', 'Cardio']
+  it('shares volume by workout name, folding the long tail into Other', () => {
+    const volumes: [string, number][] = [
+      ['Legs', 300],
+      ['Push', 100],
+      ['Push', 100],
+      ['Pull', 150],
+      ['Arms', 50],
+      ['Abs', 20],
+    ]
     const result = split(
-      names.map((name, i) => workout(i, [], name)),
+      volumes.map(([name, kg], i) => workout(i, [set('Lift', kg, 1)], name)),
       3,
     )
 
     expect(result.map((s) => [s.title, s.workouts])).toEqual([
+      ['Legs', 1],
       ['Push', 2],
-      ['Arms', 1],
-      ['Cardio', 1],
+      ['Pull', 1],
       ['Other', 2],
     ])
-    expect(result[0]?.share).toBeCloseTo(2 / 6)
+    expect(result[0]?.share).toBeCloseTo(300 / 720)
+    expect(result[3]?.share).toBeCloseTo(70 / 720)
+  })
+
+  it('leaves out workouts with no weighted volume', () => {
+    const result = split([workout(0, [set('Bench', 100, 5)], 'Push'), workout(1, [], 'Run')])
+    expect(result.map((s) => [s.title, s.share])).toEqual([['Push', 1]])
   })
 })
 
@@ -204,6 +224,19 @@ describe('weeklyVolumeBySplit', () => {
   })
 })
 
+describe('shortName', () => {
+  it('drops the equipment in brackets', () => {
+    expect(shortName('Deadlift (Barbell)', ['Deadlift (Barbell)', 'Pull Up'])).toBe('Deadlift')
+  })
+
+  it('keeps the brackets when another exercise would look the same', () => {
+    const all = ['Pull Up', 'Pull Up (Weighted)', 'Bench Press (Barbell)', 'Bench Press (Dumbbell)']
+    expect(shortName('Pull Up (Weighted)', all)).toBe('Pull Up (Weighted)')
+    expect(shortName('Bench Press (Dumbbell)', all)).toBe('Bench Press (Dumbbell)')
+    expect(shortName('Pull Up', all)).toBe('Pull Up')
+  })
+})
+
 describe('insights', () => {
   const trend = (exercise: string, status: LiftTrend['status'], changePct: number | null) =>
     ({ exercise, status, changePct, sessions: 6, e1rmKg: 100, points: [] }) as LiftTrend
@@ -228,6 +261,13 @@ describe('insights', () => {
       'Bench Press is down 4%.',
       'You trained 2.8 times a week, up from 2.5.',
     ])
+  })
+
+  it('keeps brackets that tell two exercises apart', () => {
+    const names = ['Pull Up', 'Pull Up (Weighted)']
+    expect(
+      insights([trend('Pull Up (Weighted)', 'progressing', 0.2)], totalsOf(3), null, names),
+    ).toEqual(['Pull Up (Weighted) (+20%) is leading your progress.'])
   })
 
   it('says so when nothing is moving up, and skips the comparison without one', () => {

@@ -10,19 +10,31 @@
 
 <script lang="ts">
   import type { ChartTheme } from '../../lib/charts/echarts'
-  import { formatCompact, formatDate } from '../../lib/format'
+  import { formatCompact, formatDate, formatTick } from '../../lib/format'
   import Chart from './Chart.svelte'
 
   let {
     series,
     format,
+    axisFormat = formatCompact,
     label,
   }: {
     series: Series[]
     /** Full value for the tooltip, e.g. "100 kg". */
     format: (value: number) => string
+    /** Short value for the y-axis, e.g. "100". */
+    axisFormat?: (value: number) => string
     label: string
   } = $props()
+
+  const DAY = 24 * 60 * 60 * 1000
+
+  // Over a couple of months, tick once a month. Left to itself ECharts adds a mid-month tick
+  // labelled with just the day ("17"), which reads like a value rather than a date.
+  const span = $derived.by(() => {
+    const times = series.flatMap((s) => s.points.map(([date]) => date.getTime()))
+    return times.length ? Math.max(...times) - Math.min(...times) : 0
+  })
 
   function option(theme: ChartTheme) {
     return {
@@ -31,8 +43,9 @@
         type: 'time' as const,
         axisLine: { lineStyle: { color: theme.faint } },
         axisTick: { show: false },
-        axisLabel: { color: theme.muted, hideOverlap: true },
+        axisLabel: { color: theme.muted, hideOverlap: true, formatter: formatTick },
         splitLine: { show: false },
+        minInterval: span > 60 * DAY ? 28 * DAY : DAY,
       },
       yAxis: {
         type: 'value' as const,
@@ -40,7 +53,7 @@
         scale: true,
         splitNumber: 3,
         splitLine: { lineStyle: { color: theme.faint } },
-        axisLabel: { color: theme.muted, formatter: formatCompact },
+        axisLabel: { color: theme.muted, formatter: axisFormat },
       },
       tooltip: {
         trigger: 'axis' as const,

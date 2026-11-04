@@ -21,6 +21,13 @@
     return all.filter((e) => words.every((word) => e.name.toLowerCase().includes(word)))
   })
 
+  // Enter opens the first match, so typing a few letters is enough to jump to a lift.
+  function onsubmit(event: SubmitEvent) {
+    event.preventDefault()
+    const [first] = matches
+    if (first) location.hash = href({ view: 'exercises', exercise: first.name })
+  }
+
   // A reactive media query: `wide.current` updates when the window crosses the breakpoint.
   const wide = new MediaQuery('min-width: 768px')
 
@@ -33,7 +40,9 @@
 
 <main class:showing-detail={current !== undefined && selected !== null}>
   <section class="picker">
-    <input type="search" placeholder="Search" aria-label="Search exercises" bind:value={query} />
+    <form role="search" {onsubmit}>
+      <input type="search" placeholder="Search" aria-label="Search exercises" bind:value={query} />
+    </form>
     <ul aria-label="Exercises">
       {#each matches as exercise (exercise.name)}
         <li>

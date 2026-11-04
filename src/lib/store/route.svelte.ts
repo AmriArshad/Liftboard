@@ -26,7 +26,16 @@ let current = $state<Route>(parse(location.hash))
 
 // Clicking a link changes the hash; this keeps `route.current` in step with it.
 addEventListener('hashchange', () => {
-  current = parse(location.hash)
+  const next = parse(location.hash)
+  // A hash change is an in-page jump, so the browser keeps the scroll position. A new screen
+  // (or a new exercise) should open at its top, like following a link to another page.
+  const moved =
+    next.view !== current.view ||
+    (next.view === 'exercises' &&
+      current.view === 'exercises' &&
+      next.exercise !== current.exercise)
+  current = next
+  if (moved) scrollTo(0, 0)
 })
 
 export const route = {

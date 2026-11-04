@@ -3,8 +3,11 @@
 import type { Dataset, WorkoutSet } from '../parse/types'
 import { isWorkingSet } from './overview'
 
-/** How an exercise is measured, decided from its sets. */
-export type ExerciseKind = 'weighted' | 'bodyweight' | 'cardio'
+/**
+ * How an exercise is measured, decided from its sets: by weight, by reps, by distance
+ * (cardio) or by time alone (a plank, a dead hang).
+ */
+export type ExerciseKind = 'weighted' | 'bodyweight' | 'cardio' | 'timed'
 
 export interface Exercise {
   name: string
@@ -29,7 +32,10 @@ export interface Session {
   bestReps: number | null
   volumeKg: number
   distanceKm: number | null
+  /** Total time across the session's sets. */
   durationSeconds: number | null
+  /** The longest single set, for timed holds. */
+  longestSeconds: number | null
 }
 
 /** Epley estimated one-rep max, only for sets of 1–12 reps. */
@@ -41,6 +47,8 @@ export function e1rm(weightKg: number | null, reps: number | null): number | nul
 function kindOf(sets: WorkoutSet[]): ExerciseKind {
   if (sets.some((set) => set.weightKg !== null)) return 'weighted'
   if (sets.some((set) => set.reps !== null)) return 'bodyweight'
+  if (sets.some((set) => set.distanceKm !== null)) return 'cardio'
+  if (sets.some((set) => set.durationSeconds !== null)) return 'timed'
   return 'cardio'
 }
 
@@ -82,6 +90,7 @@ export function sessions(dataset: Dataset, exercise: string): Session[] {
     let volumeKg = 0
     let distanceKm: number | null = null
     let durationSeconds: number | null = null
+    let longestSeconds: number | null = null
 
     for (const set of sets) {
       const { weightKg, reps } = set
@@ -101,6 +110,7 @@ export function sessions(dataset: Dataset, exercise: string): Session[] {
       if (set.distanceKm !== null) distanceKm = (distanceKm ?? 0) + set.distanceKm
       if (set.durationSeconds !== null) {
         durationSeconds = (durationSeconds ?? 0) + set.durationSeconds
+        longestSeconds = Math.max(longestSeconds ?? 0, set.durationSeconds)
       }
     }
 
@@ -114,6 +124,7 @@ export function sessions(dataset: Dataset, exercise: string): Session[] {
       volumeKg,
       distanceKm,
       durationSeconds,
+      longestSeconds,
     })
   }
 

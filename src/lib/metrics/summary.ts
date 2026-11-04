@@ -44,6 +44,10 @@ export function periodRange(dataset: Dataset, period: Period): Range {
   const days = PERIOD_WEEKS[period] * 7
   const lastWeek = weekStart(last)
   const start = new Date(lastWeek.getFullYear(), lastWeek.getMonth(), lastWeek.getDate() - days + 7)
+  // A period longer than the history starts at the first workout's week. Otherwise the weeks
+  // before it would count as weeks without training and drag every weekly average down.
+  const firstWeek = weekStart(first)
+  if (start < firstWeek) return { start: firstWeek, end, previous: null }
   const previousStart = new Date(start.getFullYear(), start.getMonth(), start.getDate() - days)
   return { start, end, previous: { start: previousStart, end: start } }
 }
@@ -197,19 +201,46 @@ export interface SplitShare {
   share: number
 }
 
-/** How the period's workouts divide by workout name ("Push", "Legs", …). */
+/** How the period's volume divides by workout name ("Push", "Legs", …). */
 export function split(workouts: Workout[], limit = 4): SplitShare[] {
-  const counts = new Map<string, number>()
+  // Shares of volume, to match the stacked volume chart they label. Workouts without any
+  // weighted volume (a run, a mobility session) have nothing to stack, so they're left out.
+  const volumes = new Map<string, { volumeKg: number; workouts: number }>()
   for (const w of workouts) {
+    const volumeKg = workoutVolume(w)
+    if (volumeKg === 0) continue
     const title = w.title || 'Untitled'
-    counts.set(title, (counts.get(title) ?? 0) + 1)
+    const entry = volumes.get(title) ?? { volumeKg: 0, workouts: 0 }
+    entry.volumeKg += volumeKg
+    entry.workouts++
+    volumes.set(title, entry)
   }
-  const sorted = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  const sorted = [...volumes].sort(
+    (a, b) => b[1].volumeKg - a[1].volumeKg || a[0].localeCompare(b[0]),
+  )
   const top = sorted.slice(0, limit)
-  const rest = sorted.slice(limit).reduce((sum, [, n]) => sum + n, 0)
-  if (rest > 0) top.push(['Other', rest])
-  const total = workouts.length || 1
-  return top.map(([title, n]) => ({ title, workouts: n, share: n / total }))
+  const rest = sorted.slice(limit)
+  if (rest.length > 0) {
+    top.push([
+      'Other',
+      {
+        volumeKg: rest.reduce((sum, [, e]) => sum + e.volumeKg, 0),
+        workouts: rest.reduce((sum, [, e]) => sum + e.workouts, 0),
+      },
+    ])
+  }
+  const total = sorted.reduce((sum, [, e]) => sum + e.volumeKg, 0) || 1
+  return top.map(([title, e]) => ({ title, workouts: e.workouts, share: e.volumeKg / total }))
+}
+
+function workoutVolume(workout: Workout): number {
+  let volumeKg = 0
+  for (const set of workout.sets) {
+    if (isWorkingSet(set) && set.weightKg !== null && set.reps !== null) {
+      volumeKg += set.weightKg * set.reps
+    }
+  }
+  return volumeKg
 }
 
 /** Workouts on each weekday, Monday first. */
@@ -245,18 +276,22 @@ export function weeklyVolumeBySplit(
     const row = titles.indexOf(workout.title || 'Untitled')
     const target = row === -1 ? other : row
     if (week === undefined || target === -1) continue
-    for (const set of workout.sets) {
-      if (isWorkingSet(set) && set.weightKg !== null && set.reps !== null) {
-        rows[target]![week]! += set.weightKg * set.reps
-      }
-    }
+    rows[target]![week]! += workoutVolume(workout)
   }
   return rows
 }
 
-/** "Deadlift (Barbell)" → "Deadlift": equipment in brackets reads badly mid-sentence. */
-export function shortName(exercise: string): string {
-  return exercise.replace(/\s*\([^)]*\)\s*$/, '') || exercise
+const strip = (exercise: string) => exercise.replace(/\s*\([^)]*\)\s*$/, '') || exercise
+
+/**
+ * "Deadlift (Barbell)" → "Deadlift": equipment in brackets reads badly mid-sentence. The
+ * brackets stay when dropping them would make two exercises in `all` look the same, so
+ * "Pull Up (Weighted)" is never shown as plain "Pull Up" next to the bodyweight one.
+ */
+export function shortName(exercise: string, all: readonly string[] = []): string {
+  const short = strip(exercise)
+  const clash = all.some((other) => other !== exercise && strip(other) === short)
+  return clash ? exercise : short
 }
 
 const list = (items: string[]) =>
@@ -266,8 +301,14 @@ const list = (items: string[]) =>
  * Two or three plain sentences on what's working and what isn't, from the numbers on the page.
  * Facts only: the reader knows their program better than this does.
  */
-export function insights(lifts: LiftTrend[], now: Totals, before: Totals | null): string[] {
+export function insights(
+  lifts: LiftTrend[],
+  now: Totals,
+  before: Totals | null,
+  names: readonly string[] = [],
+): string[] {
   const sentences: string[] = []
+  const short = (exercise: string) => shortName(exercise, names)
   const pct = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`
 
   const leaders = lifts
@@ -275,19 +316,19 @@ export function insights(lifts: LiftTrend[], now: Totals, before: Totals | null)
     .sort((a, b) => b.changePct! - a.changePct!)
     .slice(0, 2)
   if (leaders.length > 0) {
-    const names = leaders.map((l) => `${shortName(l.exercise)} (${pct(l.changePct!)})`)
+    const names = leaders.map((l) => `${short(l.exercise)} (${pct(l.changePct!)})`)
     sentences.push(`${list(names)} ${leaders.length > 1 ? 'are' : 'is'} leading your progress.`)
   } else if (lifts.length > 0) {
     sentences.push('No lift is clearly moving up this period.')
   }
 
-  const stalled = lifts.filter((l) => l.status === 'stalled').map((l) => shortName(l.exercise))
+  const stalled = lifts.filter((l) => l.status === 'stalled').map((l) => short(l.exercise))
   if (stalled.length > 0) {
     sentences.push(`${list(stalled)} ${stalled.length > 1 ? 'have' : 'has'} stalled.`)
   }
   const down = lifts.filter((l) => l.status === 'regressing')
   for (const lift of down.slice(0, 2)) {
-    sentences.push(`${shortName(lift.exercise)} is down ${pct(lift.changePct!).slice(1)}.`)
+    sentences.push(`${short(lift.exercise)} is down ${pct(lift.changePct!).slice(1)}.`)
   }
 
   if (before && before.workouts > 0) {
