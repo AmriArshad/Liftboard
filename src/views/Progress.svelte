@@ -86,7 +86,7 @@
        inside its own box instead of widening the page on phones. */
     grid-template-columns: minmax(0, 1fr);
     gap: 48px;
-    max-width: 960px;
+    max-width: var(--page-width);
     margin: 0 auto;
     padding: 16px 16px 64px;
   }

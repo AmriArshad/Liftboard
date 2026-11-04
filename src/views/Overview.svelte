@@ -330,7 +330,7 @@
 
 <style>
   main {
-    max-width: 1080px;
+    max-width: var(--page-width);
     margin: 0 auto;
     padding: 8px 16px 64px;
   }
