@@ -2,6 +2,7 @@
 <script lang="ts">
   import { formatDate, formatDecimal, formatWeight } from '../lib/format'
   import { personalRecords, stalledLifts, type RecordKind } from '../lib/metrics/progress'
+  import { workoutIds } from '../lib/metrics/workout'
   import type { Dataset, Unit } from '../lib/parse/types'
   import { href } from '../lib/store/route.svelte'
   import { fromKg } from '../lib/units'
@@ -25,6 +26,9 @@
   }
 
   const exerciseLink = (exercise: string) => href({ view: 'exercises', exercise })
+  const ids = $derived(workoutIds(data))
+  const workoutLink = (date: Date) =>
+    href({ view: 'workouts', workout: ids.get(date.getTime()) ?? null })
 </script>
 
 <main>
@@ -57,7 +61,9 @@
           <tbody>
             {#each shown as record (`${record.date.getTime()} ${record.exercise}`)}
               <tr>
-                <td class="date">{formatDate(record.date)}</td>
+                <td class="date"
+                  ><a href={workoutLink(record.date)}>{formatDate(record.date)}</a></td
+                >
                 <td><a href={exerciseLink(record.exercise)}>{record.exercise}</a></td>
                 <td class="set">{setText(record.weightKg, record.reps)}</td>
                 <td class="kinds">

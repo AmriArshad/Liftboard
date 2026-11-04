@@ -16,14 +16,26 @@ interface Lift {
   sets: number
   warmup?: boolean
   cardio?: boolean
+  /** Hevy repeats an exercise's note on every one of its sets. */
+  notes?: string
+  /** Lifts sharing an id in a day were done as a superset. */
+  superset?: number
 }
 
 const DAYS: Record<string, Lift[]> = {
   Push: [
-    { name: 'Bench Press (Barbell)', start: 70, step: 1.25, reps: 5, sets: 3, warmup: true },
+    {
+      name: 'Bench Press (Barbell)',
+      start: 70,
+      step: 1.25,
+      reps: 5,
+      sets: 3,
+      warmup: true,
+      notes: 'Pause the first rep, elbows tucked.',
+    },
     { name: 'Overhead Press (Barbell)', start: 40, step: 0.5, stallAfter: 12, reps: 6, sets: 3 },
-    { name: 'Triceps Dip', reps: 10, sets: 3 },
-    { name: 'Lateral Raise (Dumbbell)', start: 8, step: 0.1, reps: 12, sets: 3 },
+    { name: 'Triceps Dip', reps: 10, sets: 3, superset: 0 },
+    { name: 'Lateral Raise (Dumbbell)', start: 8, step: 0.1, reps: 12, sets: 3, superset: 0 },
   ],
   Pull: [
     { name: 'Deadlift (Barbell)', start: 110, step: 2.5, reps: 5, sets: 3, warmup: true },
@@ -32,7 +44,15 @@ const DAYS: Record<string, Lift[]> = {
     { name: 'Bent Over Row (Barbell)', start: 60, step: 1.25, reps: 8, sets: 3 },
   ],
   Legs: [
-    { name: 'Squat (Barbell)', start: 90, step: 2.5, reps: 5, sets: 3, warmup: true },
+    {
+      name: 'Squat (Barbell)',
+      start: 90,
+      step: 2.5,
+      reps: 5,
+      sets: 3,
+      warmup: true,
+      notes: 'High bar. Belt from the second set.',
+    },
     { name: 'Romanian Deadlift (Barbell)', start: 80, step: 1.25, reps: 8, sets: 3 },
     { name: 'Leg Press (Machine)', start: 140, step: 5, reps: 10, sets: 3 },
     { name: 'Walking', reps: 0, sets: 1, cardio: true },
@@ -76,6 +96,15 @@ function hevyDate(date: Date): string {
   return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}, ${time}`
 }
 
+// Every fifth workout gets a note, cycling through these. Picked by position rather than at
+// random, so adding them didn't change any of the generated numbers.
+const DESCRIPTIONS = [
+  'Felt strong today.',
+  'Short on sleep, kept the weights honest.',
+  'Gym was packed, so I swapped the order around a little.',
+  'Good session. Bar speed felt quick on everything.',
+]
+
 const roundTo = (value: number, step: number) => Math.round(value / step) * step
 
 const csvRow = (fields: (string | number)[]) =>
@@ -96,6 +125,8 @@ for (let day = new Date(2026, 5, 1); day < new Date(2026, 10, 1); day.setDate(da
   start.setHours(between(17, 18), between(0, 59))
   const end = new Date(start.getTime() + between(55, 80) * 60_000)
   const rows: string[] = []
+  const description =
+    workouts.length % 5 === 0 ? DESCRIPTIONS[(workouts.length / 5) % DESCRIPTIONS.length]! : ''
   workouts.push(rows)
 
   for (const lift of DAYS[title]!) {
@@ -126,10 +157,10 @@ for (let day = new Date(2026, 5, 1); day < new Date(2026, 10, 1); day.setDate(da
           title,
           hevyDate(start),
           hevyDate(end),
-          '',
+          description,
           lift.name,
-          '',
-          '',
+          lift.superset ?? '',
+          lift.notes ?? '',
           index,
           type!,
           weight!,
