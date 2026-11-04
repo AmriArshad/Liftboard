@@ -18,9 +18,20 @@ test('finds an exercise and shows its history', async ({ page }) => {
   await expect(
     page.getByRole('img', { name: 'Bench Press (Barbell) over 21 sessions' }).locator('svg'),
   ).toBeVisible()
-  await expect(page.getByRole('columnheader')).toHaveText(['Date', 'Top set', 'e1RM', 'Sets'])
+  await expect(page.getByText('Best e1RM')).toBeVisible()
+
+  // The progressive demo never beats a later set at fewer reps, so one rep max is left.
+  const [repMaxes, history] = [page.getByRole('table').first(), page.getByRole('table').last()]
+  await expect(repMaxes.getByRole('columnheader')).toHaveText(['Reps', 'Weight', 'Date'])
+  await expect(history.getByRole('columnheader')).toHaveText(['Date', 'Top set', 'e1RM', 'Sets'])
   // One row per session, plus the header.
-  await expect(page.getByRole('row')).toHaveCount(22)
+  await expect(history.getByRole('row')).toHaveCount(22)
+  // Every set of the latest session.
+  await expect(history.getByRole('row').nth(1)).toContainText('95 × 6, 95 × 4, 95 × 4')
+
+  // The date opens that workout.
+  await history.getByRole('link').first().click()
+  await expect(page).toHaveURL(/#\/workouts\/2026-10-28-\d{4}$/)
 })
 
 test('shows reps for bodyweight exercises', async ({ page }) => {
