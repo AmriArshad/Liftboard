@@ -31,9 +31,10 @@ test('lists every workout and shows one in full', async ({ page }) => {
 
 test('opens a workout from a record date', async ({ page }) => {
   await loadDemo(page, '/#/progress')
-  const row = page.getByRole('row').first()
-  const exercise = await row.getByRole('link').nth(1).textContent()
-  await row.getByRole('link').first().click()
+  // The first record's exercise, then the date heading above it.
+  const records = page.getByRole('region', { name: 'Personal records' })
+  const exercise = await records.getByRole('listitem').first().getByRole('link').textContent()
+  await records.getByRole('heading', { level: 2 }).first().getByRole('link').click()
 
   await expect(page).toHaveURL(/#\/workouts\//)
   await expect(page.getByRole('link', { name: exercise!, exact: true }).last()).toBeVisible()

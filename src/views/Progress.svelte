@@ -17,6 +17,17 @@
   let showAll = $state(false)
   const shown = $derived(showAll ? records : records.slice(0, PREVIEW))
 
+  // Records come newest first, so those from one workout sit next to each other.
+  const days = $derived.by(() => {
+    const groups: { date: Date; records: typeof shown }[] = []
+    for (const record of shown) {
+      const last = groups.at(-1)
+      if (last?.date.getTime() === record.date.getTime()) last.records.push(record)
+      else groups.push({ date: record.date, records: [record] })
+    }
+    return groups
+  })
+
   const KIND_LABELS: Record<RecordKind, string> = { e1rm: 'e1RM', weight: 'Weight', reps: 'Reps' }
 
   function setText(weightKg: number | null, reps: number | null): string {
@@ -51,31 +62,28 @@
     {/if}
   </section>
 
-  <section>
-    <h1>Personal records</h1>
+  <section aria-labelledby="records">
+    <h1 id="records">Personal records</h1>
     {#if records.length === 0}
       <p class="empty">No records yet.</p>
     {:else}
-      <div class="table">
-        <table>
-          <tbody>
-            {#each shown as record (`${record.date.getTime()} ${record.exercise}`)}
-              <tr>
-                <td class="date"
-                  ><a href={workoutLink(record.date)}>{formatDate(record.date)}</a></td
-                >
-                <td><a href={exerciseLink(record.exercise)}>{record.exercise}</a></td>
-                <td class="set">{setText(record.weightKg, record.reps)}</td>
-                <td class="kinds">
-                  {#each record.kinds as kind (kind)}
-                    <span class="badge">{KIND_LABELS[kind]}</span>
-                  {/each}
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
+      <!-- Records grouped under the workout they were set in, so each date reads once. -->
+      {#each days as day (day.date.getTime())}
+        <h2><a href={workoutLink(day.date)}>{formatDate(day.date)}</a></h2>
+        <ul class="records">
+          {#each day.records as record (record.exercise)}
+            <li>
+              <a href={exerciseLink(record.exercise)}>{record.exercise}</a>
+              <span class="set">{setText(record.weightKg, record.reps)}</span>
+              <span class="kinds">
+                {#each record.kinds as kind (kind)}
+                  <span class="badge">{KIND_LABELS[kind]}</span>
+                {/each}
+              </span>
+            </li>
+          {/each}
+        </ul>
+      {/each}
       {#if records.length > PREVIEW}
         <button type="button" onclick={() => (showAll = !showAll)}>
           {showAll ? 'Show fewer' : `Show all ${records.length}`}
@@ -88,8 +96,8 @@
 <style>
   main {
     display: grid;
-    /* minmax(0, …) lets the column shrink below the table's width, so the table scrolls
-       inside its own box instead of widening the page on phones. */
+    /* minmax(0, …) lets the column shrink below its content's width, so nothing widens
+       the page on phones. */
     grid-template-columns: minmax(0, 1fr);
     gap: 48px;
     max-width: var(--page-width);
@@ -144,39 +152,49 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .table {
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-variant-numeric: tabular-nums;
-  }
-
-  td {
-    padding: 10px 12px 10px 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
-    white-space: nowrap;
-  }
-
-  td.date {
+  h2 {
+    margin: 24px 0 4px;
+    font-size: 0.8125rem;
+    font-weight: 500;
     opacity: 0.6;
   }
 
-  td.set,
-  td.kinds {
-    text-align: right;
+  h2:first-of-type {
+    margin-top: 0;
   }
 
-  td.kinds {
-    padding-right: 0;
+  .records {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The exercise on the left and the set on the right; the badges sit under the set, so a
+     long name never pushes the numbers off a phone screen. */
+  .records li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 16px;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  }
+
+  .records .set {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .records .kinds {
+    grid-column: 2;
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
   }
 
   /* PR highlights are one of the few places the accent appears. */
   .badge {
-    display: inline-block;
-    margin-left: 4px;
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 0.75rem;
