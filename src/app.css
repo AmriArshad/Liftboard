@@ -19,6 +19,8 @@
   --good: #2f7a12;
   --bad: #c4262e;
   --warn: #a35a00;
+  /* Every view, the header and the footer share one column so their edges line up. */
+  --page-width: 1080px;
 
   font-family:
     'Geist Variable',
